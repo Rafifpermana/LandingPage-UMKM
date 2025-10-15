@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS Kustom untuk Garis Timeline */
+.timeline-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0; /* Posisi di kiri untuk mobile */
+  width: 4px;
+  height: 100%;
+  background-color: #dbeafe; /* Warna biru muda, sesuaikan dengan tema */
+  border-radius: 2px;
+}
+
+/* Pindahkan garis ke tengah untuk layar besar (lg) */
+@media (min-width: 1024px) {
+  .timeline-container::before {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}

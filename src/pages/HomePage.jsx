@@ -1,9 +1,9 @@
-import Hero from "../components/Hero";
-import Stats from "../components/Stats";
-import About from "../components/About";
-import Courses from "../components/Courses";
-import Testimonials from "../components/Testimonials";
-import News from "../components/News";
+import Hero from "../components/HomePageComponents/Hero";
+import Stats from "../components/HomePageComponents/Stats";
+import About from "../components/HomePageComponents/About";
+import Courses from "../components/HomePageComponents/Courses";
+import Testimonials from "../components/HomePageComponents/Testimonials";
+import News from "../components/HomePageComponents/News";
 
 export default function HomePage() {
   return (
