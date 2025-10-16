@@ -3,7 +3,7 @@ import React from "react";
 export default function TeamHero() {
   return (
     <section className="relative bg-[#0F1E29] text-white h-96 lg:h-[550px] flex items-center overflow-hidden">
-      <div className="container mx-auto px-4 z-10 relative">
+      <div className="container mx-auto px-4 z-10 text-center">
         <h1 className="text-4xl lg:text-5xl font-bold mb-3">Tim UMKM Hebat</h1>
         <p className="text-gray-300">
           Home &gt; Pengurus Yayasan & Executive Team
