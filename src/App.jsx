@@ -11,6 +11,7 @@ import TrainingPage from "./pages/TrainingPage";
 import IncubationPage from "./pages/IncubationPage";
 import UmkmDaysPage from "./pages/UmkmDaysPage";
 import ProHirePage from "./pages/ProHirePage";
+import InternshipHirePage from "./pages/InternshipHirePage";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/inkubasi" element={<IncubationPage />} />
           <Route path="/umkm-days" element={<UmkmDaysPage />} />
           <Route path="/karir-prohire" element={<ProHirePage />} />
+          <Route path="/karir-magang" element={<InternshipHirePage />} />
         </Routes>
       </main>
       <Footer />

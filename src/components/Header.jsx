@@ -39,7 +39,7 @@ export default function Header() {
       name: "Karir",
       dropdown: [
         { name: "Lowongan Kerja Prohire", href: "/karir-prohire" },
-        { name: "Lowongan Kerja Magang", href: "/karir/magang" },
+        { name: "Lowongan Kerja Magang", href: "/karir-magang" },
         { name: "Lowongan Relawan", href: "/karir/relawan" },
       ],
     },
