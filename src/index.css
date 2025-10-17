@@ -2,22 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Kustom untuk Garis Timeline */
 .timeline-container::before {
   content: "";
   position: absolute;
   top: 0;
-  left: 0; /* Posisi di kiri untuk mobile */
+  left: 0;
   width: 4px;
   height: 100%;
-  background-color: #dbeafe; /* Warna biru muda, sesuaikan dengan tema */
+  background-color: #dbeafe;
   border-radius: 2px;
 }
 
-/* Pindahkan garis ke tengah untuk layar besar (lg) */
 @media (min-width: 1024px) {
   .timeline-container::before {
     left: 50%;
     transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1023px) {
+  .relative .flex .w-1\/2.pr-8,
+  .relative .flex .w-1\/2.pl-8 {
+    opacity: 1 !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .relative .flex .w-1\/2.text-right {
+    text-align: left !important;
+  }
+  .absolute.left-1\/2.w-4.h-4 {
+    display: none !important;
+  }
+  .absolute.left-1\/2.top-0.h-full.w-0\.5 {
+    display: none !important;
+  }
+}
+@media (min-width: 1024px) {
+  .relative.lg\:hidden {
+    display: none !important;
   }
 }

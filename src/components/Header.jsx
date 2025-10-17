@@ -12,7 +12,6 @@ export default function Header() {
     { name: "Beranda", href: "/" },
     {
       name: "Tentang Kami",
-      href: "/tentang-kami",
       dropdown: [
         { name: "Tentang UMKM Hebat", href: "/tentang-kami" },
         { name: "Tim UMKM Hebat", href: "/tim-kami" },
@@ -20,20 +19,19 @@ export default function Header() {
     },
     {
       name: "Program",
-      href: "/program",
       dropdown: [
         { name: "Kelas UMKM", href: "https://kelas.umkmhebat.id/" },
         { name: "Pasar UMKM", href: "/pasar-umkm" },
-        { name: "Magang & Relawan", href: "/program/magang" },
+        { name: "Magang & Relawan", href: "/magang-relawan" },
       ],
     },
     {
       name: "Event",
-      href: "/event",
       dropdown: [
-        { name: "Webinar", href: "/event/webinar" },
-        { name: "Training UMKM", href: "/event/training" },
-        { name: "Inkubasi", href: "/event/inkubasi" },
+        { name: "Webinar", href: "https://webinar.umkmhebat.id/" },
+        { name: "Training UMKM", href: "/training-umkm" },
+        { name: "Inkubasi", href: "/inkubasi" },
+        { name: "UMKM Days", href: "/event/bootcamp" },
       ],
     },
     { name: "Blog", href: "/blog" },
@@ -128,7 +126,6 @@ export default function Header() {
               UMKM HEBAT
             </Link>
 
-            {/* Menu Desktop */}
             <nav className="hidden lg:flex items-center space-x-6">
               {navLinks.map((link) =>
                 link.dropdown ? (
