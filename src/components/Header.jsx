@@ -22,8 +22,8 @@ export default function Header() {
       name: "Program",
       href: "/program",
       dropdown: [
-        { name: "Kelas UMKM", href: "/program/kelas" },
-        { name: "Pasar UMKM", href: "/program/pasar" },
+        { name: "Kelas UMKM", href: "https://kelas.umkmhebat.id/" },
+        { name: "Pasar UMKM", href: "/pasar-umkm" },
         { name: "Magang & Relawan", href: "/program/magang" },
       ],
     },
@@ -89,6 +89,30 @@ export default function Header() {
       ...prev,
       [linkName]: !prev[linkName],
     }));
+  };
+
+  const NavLink = ({ item, className, onClick }) => {
+    const isExternal = item.href.startsWith("http");
+
+    if (isExternal) {
+      return (
+        <a
+          href={item.href}
+          className={className}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onClick}
+        >
+          {item.name}
+        </a>
+      );
+    }
+
+    return (
+      <Link to={item.href} className={className} onClick={onClick}>
+        {item.name}
+      </Link>
+    );
   };
 
   return (
