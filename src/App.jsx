@@ -9,6 +9,7 @@ import MarketplacePage from "./pages/MarketplacePage";
 import InternshipPage from "./pages/InternshipPage";
 import TrainingPage from "./pages/TrainingPage";
 import IncubationPage from "./pages/IncubationPage";
+import UmkmDaysPage from "./pages/UmkmDaysPage";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/magang-relawan" element={<InternshipPage />} />
           <Route path="/training-umkm" element={<TrainingPage />} />
           <Route path="/inkubasi" element={<IncubationPage />} />
+          <Route path="/umkm-days" element={<UmkmDaysPage />} />
         </Routes>
       </main>
       <Footer />
