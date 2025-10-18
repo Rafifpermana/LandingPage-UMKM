@@ -14,6 +14,7 @@ import ProHirePage from "./pages/ProHirePage";
 import InternshipHirePage from "./pages/InternshipHirePage";
 import VolunteerPage from "./pages/VolunteerPage";
 import ContactPage from "./pages/ContactPage";
+import BlogPage from "./pages/BlogPage";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/karir-magang" element={<InternshipHirePage />} />
           <Route path="/karir-relawan" element={<VolunteerPage />} />
           <Route path="/kontak" element={<ContactPage />} />
+          <Route path="/blog" element={<BlogPage />} />
         </Routes>
       </main>
       <Footer />
