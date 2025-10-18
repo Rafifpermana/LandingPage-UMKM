@@ -12,6 +12,7 @@ import IncubationPage from "./pages/IncubationPage";
 import UmkmDaysPage from "./pages/UmkmDaysPage";
 import ProHirePage from "./pages/ProHirePage";
 import InternshipHirePage from "./pages/InternshipHirePage";
+import VolunteerPage from "./pages/VolunteerPage";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/umkm-days" element={<UmkmDaysPage />} />
           <Route path="/karir-prohire" element={<ProHirePage />} />
           <Route path="/karir-magang" element={<InternshipHirePage />} />
+          <Route path="/karir-relawan" element={<VolunteerPage />} />
         </Routes>
       </main>
       <Footer />
