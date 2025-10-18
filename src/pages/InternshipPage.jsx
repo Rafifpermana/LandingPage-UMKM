@@ -1,15 +1,15 @@
 import React from "react";
-import InternshipHero from "../components/InternshipPageComponents/InternshipHero";
+import OpportunitiesHero from "../components/InternshipPageComponents/InternshipHero";
 import BenefitsSection from "../components/InternshipPageComponents/BenefitsSection";
-import OpenPositions from "../components/InternshipPageComponents/OpenPositions";
 import HowToApply from "../components/InternshipPageComponents/HowToApply";
+import ProgramInfo from "../components/InternshipPageComponents/ProgramInfo";
 
 export default function InternshipPage() {
   return (
     <div className="bg-white">
-      <InternshipHero />
+      <OpportunitiesHero />
       <BenefitsSection />
-      <OpenPositions />
+      <ProgramInfo />
       <HowToApply />
     </div>
   );

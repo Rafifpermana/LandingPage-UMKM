@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import VolunteerOpportunityCard from "./VolunteerOpportunityCard";
+import { Search } from "lucide-react";
 
 const opportunities = [
   {
@@ -38,28 +39,76 @@ const opportunities = [
   },
 ];
 
+const areas = [
+  "Semua Area",
+  "Mentorship",
+  "Konten",
+  "Kreatif",
+  "Media",
+  "Event Support",
+];
+
 export default function OpenOpportunities() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedArea, setSelectedArea] = useState("Semua Area");
+
+  const filteredOpportunities = useMemo(() => {
+    return opportunities
+      .filter((opp) => {
+        return selectedArea === "Semua Area" || opp.area === selectedArea;
+      })
+      .filter((opp) => {
+        return opp.title.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+  }, [searchTerm, selectedArea]);
+
   return (
     <section className="py-16 lg:py-24 bg-gray-50">
       <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-12">
+          <div className="relative flex-grow">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Cari kesempatan..."
+              className="w-full border border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select
+            className="w-full md:w-48 border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+            value={selectedArea}
+            onChange={(e) => setSelectedArea(e.target.value)}
+          >
+            {areas.map((area) => (
+              <option key={area} value={area}>
+                {area}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 text-center mb-12">
           Kesempatan Berkontribusi
         </h2>
 
-        {opportunities.length > 0 ? (
+        {filteredOpportunities.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {opportunities.map((opp) => (
+            {filteredOpportunities.map((opp) => (
               <VolunteerOpportunityCard key={opp.id} opportunity={opp} />
             ))}
           </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-lg shadow-md">
             <h3 className="text-2xl font-bold text-gray-700">
-              Belum Ada Kesempatan
+              Kesempatan Tidak Ditemukan
             </h3>
             <p className="text-gray-500 mt-2">
-              Saat ini belum ada kesempatan relawan yang dibuka. Cek kembali
-              nanti!
+              Belum ada kesempatan untuk filter ini. Cek kembali nanti!
             </p>
           </div>
         )}
