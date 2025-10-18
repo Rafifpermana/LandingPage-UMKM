@@ -13,6 +13,7 @@ import UmkmDaysPage from "./pages/UmkmDaysPage";
 import ProHirePage from "./pages/ProHirePage";
 import InternshipHirePage from "./pages/InternshipHirePage";
 import VolunteerPage from "./pages/VolunteerPage";
+import ContactPage from "./pages/ContactPage";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/karir-prohire" element={<ProHirePage />} />
           <Route path="/karir-magang" element={<InternshipHirePage />} />
           <Route path="/karir-relawan" element={<VolunteerPage />} />
+          <Route path="/kontak" element={<ContactPage />} />
         </Routes>
       </main>
       <Footer />
