@@ -15,6 +15,8 @@ import InternshipHirePage from "./pages/InternshipHirePage";
 import VolunteerPage from "./pages/VolunteerPage";
 import ContactPage from "./pages/ContactPage";
 import BlogPage from "./pages/BlogPage";
+import ProductRegistrationPage from "./pages/ProductRegistrationPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
 
 export default function App() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
           <Route path="/karir-relawan" element={<VolunteerPage />} />
           <Route path="/kontak" element={<ContactPage />} />
           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          <Route path="/daftar-produk" element={<ProductRegistrationPage />} />
         </Routes>
       </main>
       <Footer />

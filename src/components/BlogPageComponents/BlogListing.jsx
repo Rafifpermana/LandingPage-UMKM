@@ -1,35 +1,35 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import BlogPostCard from "./BlogPostCard";
 import Pagination from "./Pagination";
+import { allPosts } from "../../data/blogData";
+import BlogSidebar from "./BlogSidebar";
 
-const allPosts = Array.from({ length: 500 }, (_, i) => ({
-  id: i + 1,
-  title: `Judul Artikel Blog Menarik #${i + 1}`,
-  date: new Date(2025, 9, 18 - i).toISOString(),
-  comments: Math.floor(Math.random() * 5),
-  excerpt: `Ini adalah cuplikan singkat untuk artikel blog #${
-    i + 1
-  }. Hai Sobat Hebat! Siapa yang tidak ingin bisnisnya terus berkembang dan dikenal banyak orang? Tentu saja semua...`,
-  image: `https://placehold.co/600x400/${Math.floor(
-    Math.random() * 16777215
-  ).toString(16)}/ffffff?text=Blog+${i + 1}`,
-  category: "BLOG",
-}));
+const POSTS_PER_PAGE = 8;
 
-const POSTS_PER_PAGE = 9;
-
-export default function BlogListing() {
+export default function BlogListing({ searchQuery }) {
   const [currentPage, setCurrentPage] = useState(1);
 
+  const filteredPosts = useMemo(() => {
+    let posts = allPosts;
+    if (searchQuery) {
+      posts = posts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return posts;
+  }, [searchQuery]);
+
   const totalPages = useMemo(() => {
-    return Math.ceil(allPosts.length / POSTS_PER_PAGE);
-  }, []);
+    return Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  }, [filteredPosts]);
 
   const currentPosts = useMemo(() => {
     const indexOfLastPost = currentPage * POSTS_PER_PAGE;
     const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
-    return allPosts.slice(indexOfFirstPost, indexOfLastPost);
-  }, [currentPage]);
+    return filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  }, [currentPage, filteredPosts]);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -41,9 +41,22 @@ export default function BlogListing() {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   return (
     <section id="blog-listing-section" className="py-16 lg:py-24 bg-gray-50">
       <div className="container mx-auto px-4">
+        {searchQuery && (
+          <div className="mb-8 text-center bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <p className="text-gray-700">
+              Menampilkan hasil pencarian untuk:{" "}
+              <strong className="text-blue-700">"{searchQuery}"</strong>
+            </p>
+          </div>
+        )}
+
         {currentPosts.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -51,12 +64,13 @@ export default function BlogListing() {
                 <BlogPostCard key={post.id} post={post} />
               ))}
             </div>
-
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </>
         ) : (
           <div className="text-center py-16">
@@ -66,6 +80,38 @@ export default function BlogListing() {
             <p className="text-gray-500 mt-2">Silakan cek kembali nanti.</p>
           </div>
         )}
+
+        {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 mt-12">
+          <div className="lg:col-span-2">
+            {currentPosts.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {currentPosts.map((post) => (
+                    <BlogPostCard key={post.id} post={post} />
+                  ))}
+                </div>
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
+              </>
+            ) : (
+              <div className="text-center py-16">
+                <h3 className="text-2xl font-bold text-gray-700">
+                  Belum Ada Postingan
+                </h3>
+                <p className="text-gray-500 mt-2">Silakan cek kembali nanti.</p>
+              </div>
+            )}
+          </div>
+          <div className="lg:col-span-1">
+            <BlogSidebar posts={allPosts} />
+          </div>
+        </div>
+        */}
       </div>
     </section>
   );

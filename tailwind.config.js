@@ -19,5 +19,9 @@ export default {
       },
     },
   },
-  plugins: [import("@tailwindcss/aspect-ratio")],
+  plugins: [
+    import("@tailwindcss/aspect-ratio"),
+    import("@tailwindcss/typography"),
+    import("@tailwindcss/aspect-ratio"),
+  ],
 };

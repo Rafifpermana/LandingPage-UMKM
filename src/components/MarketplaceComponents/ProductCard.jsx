@@ -1,7 +1,7 @@
-import { Store } from "lucide-react";
 import React from "react";
+import { Store } from "lucide-react";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onViewDetail }) {
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -11,7 +11,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 flex flex-col h-full">
       <div className="relative">
         <img
           src={product.image}
@@ -22,18 +22,24 @@ export default function ProductCard({ product }) {
           {product.category}
         </div>
       </div>
-      <div className="p-6">
-        <h3 className="font-bold text-lg text-gray-800 truncate">
+      <div className="p-5 flex flex-col flex-grow">
+        <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-1">
           {product.name}
         </h3>
-        <div className="flex items-center text-sm text-gray-500 mt-1">
-          <Store size={14} className="mr-2" />
+        <div className="flex items-center text-sm text-gray-500 mb-2">
+          <Store size={14} className="mr-1.5" />
           <span>{product.seller}</span>
         </div>
-        <p className="text-xl font-bold text-gray-900 mt-3">
+        <p className="text-xs text-gray-600 line-clamp-2 mb-3 flex-grow">
+          {product.description}
+        </p>
+        <p className="text-xl font-bold text-gray-900 mb-4">
           {formatPrice(product.price)}
         </p>
-        <button className="mt-4 w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+        <button
+          onClick={() => onViewDetail(product)}
+          className="mt-auto w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+        >
           Lihat Detail
         </button>
       </div>

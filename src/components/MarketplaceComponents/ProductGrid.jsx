@@ -1,128 +1,207 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ProductCard from "./ProductCard";
+import Pagination from "../BlogPageComponents/Pagination";
 import { Search } from "lucide-react";
 
-const products = [
-  {
-    id: 1,
-    name: "Kopi Gayo Arabika Premium",
-    price: 125000,
-    seller: "Kopi Kita",
-    category: "Minuman",
-    image: "https://placehold.co/600x400/a855f7/ffffff?text=Kopi+Gayo",
-  },
-  {
-    id: 2,
-    name: "Tas Kulit Asli Garut",
-    price: 750000,
-    seller: "Kulit Indah",
-    category: "Fashion",
-    image: "https://placehold.co/600x400/f97316/ffffff?text=Tas+Kulit",
-  },
-  {
-    id: 3,
-    name: "Batik Tulis Madura",
-    price: 450000,
-    seller: "Batik Warisan",
-    category: "Fashion",
-    image: "https://placehold.co/600x400/10b981/ffffff?text=Batik",
-  },
-  {
-    id: 4,
-    name: "Keripik Singkong Balado",
-    price: 25000,
-    seller: "Cemilan Juara",
-    category: "Makanan",
-    image: "https://placehold.co/600x400/ef4444/ffffff?text=Keripik",
-  },
-  {
-    id: 5,
-    name: "Patung Kayu Jati Jepara",
-    price: 1200000,
-    seller: "Seni Ukir Jaya",
-    category: "Kerajinan",
-    image: "https://placehold.co/600x400/6366f1/ffffff?text=Patung",
-  },
-  {
-    id: 6,
-    name: "Madu Hutan Asli Sumbawa",
-    price: 150000,
-    seller: "Madu Lestari",
-    category: "Makanan",
-    image: "https://placehold.co/600x400/f59e0b/ffffff?text=Madu",
-  },
-  {
-    id: 7,
-    name: "Baju Tenun Sumba",
-    price: 950000,
-    seller: "Tenun Ikat Sumba",
-    category: "Fashion",
-    image: "https://placehold.co/600x400/3b82f6/ffffff?text=Tenun",
-  },
-  {
-    id: 8,
-    name: "Sambal Roa Khas Manado",
-    price: 45000,
-    seller: "Dapur Mama Roa",
-    category: "Makanan",
-    image: "https://placehold.co/600x400/d946ef/ffffff?text=Sambal",
-  },
-];
+const generateProducts = (count) => {
+  const categories = [
+    "Makanan",
+    "Minuman",
+    "Fashion",
+    "Kerajinan",
+    "Aksesoris",
+    "Herbal",
+  ];
+  const names = [
+    "Kopi",
+    "Tas",
+    "Batik",
+    "Keripik",
+    "Patung",
+    "Madu",
+    "Tenun",
+    "Sambal",
+    "Gelang",
+    "Masker",
+    "Sabun",
+    "Dompet",
+  ];
+  const adjectives = [
+    "Premium",
+    "Asli",
+    "Organik",
+    "Unik",
+    "Modern",
+    "Tradisional",
+    "Sehat",
+    "Berkualitas",
+  ];
+  const sellers = [
+    "UMKM Jaya",
+    "Karya Nusantara",
+    "Produk Lokal Hebat",
+    "Warisan Ibu",
+    "Kreasi Anak Bangsa",
+  ];
 
-const categories = ["Semua", "Makanan", "Minuman", "Fashion", "Kerajinan"];
+  const products = [];
+  for (let i = 1; i <= count; i++) {
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const namePart = names[Math.floor(Math.random() * names.length)];
+    const adjPart = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const seller = sellers[Math.floor(Math.random() * sellers.length)];
+    const price = Math.floor(Math.random() * 50 + 1) * 10000;
 
-export default function ProductGrid() {
+    const baseImageUrl = `https://placehold.co/600x400/${Math.floor(
+      Math.random() * 16777215
+    ).toString(16)}/ffffff`;
+    const images = [
+      `${baseImageUrl}?text=${encodeURIComponent(namePart)}+1`,
+      `${baseImageUrl}?text=${encodeURIComponent(namePart)}+2`,
+      `${baseImageUrl}?text=${encodeURIComponent(namePart)}+3`,
+    ];
+
+    products.push({
+      id: i,
+      name: `${adjPart} ${namePart} Khas Daerah ${i}`,
+      price: price,
+      seller: seller,
+      category: category,
+      image: images[0],
+      images: images,
+      description: `Deskripsi lengkap untuk ${adjPart} ${namePart} Khas Daerah ${i}. Produk ini dibuat dengan bahan berkualitas tinggi dan proses tradisional yang teliti, cocok untuk ${
+        category === "Makanan" || category === "Minuman"
+          ? "menemani santai Anda"
+          : category === "Fashion"
+          ? "menunjang penampilan Anda"
+          : "menghiasi rumah Anda"
+      }. ${
+        category === "Kerajinan" ? "Memiliki nilai seni yang tinggi." : ""
+      } Segera dapatkan produk unggulan dari ${seller}!`,
+    });
+  }
+  return products;
+};
+
+const allProducts = generateProducts(150);
+
+const categories = ["Semua", ...new Set(allProducts.map((p) => p.category))];
+
+const PRODUCTS_PER_PAGE = 15;
+
+export default function ProductGrid({ products, onViewDetail }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredProducts = useMemo(() => {
     return products
-      .filter((product) => {
-        return (
+      .filter(
+        (product) =>
           selectedCategory === "Semua" || product.category === selectedCategory
-        );
-      })
-      .filter((product) => {
-        return product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      });
+      )
+      .filter((product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [searchTerm, selectedCategory, products]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  }, [filteredProducts]);
+
+  const currentProducts = useMemo(() => {
+    const indexOfLastPost = currentPage * PRODUCTS_PER_PAGE;
+    const indexOfFirstPost = indexOfLastPost - PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(indexOfFirstPost, indexOfLastPost);
+  }, [currentPage, filteredProducts]);
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      const sectionElement = document.getElementById("product-grid-section");
+      if (sectionElement) {
+        sectionElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [searchTerm, selectedCategory]);
 
   return (
-    <section className="py-16 lg:py-24 bg-gray-50">
+    <section
+      id="product-grid-section"
+      className="py-16 lg:py-24 bg-gradient-to-b from-gray-50 to-white"
+    >
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row gap-4 mb-12">
-          <div className="relative flex-grow">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Cari nama produk..."
-              className="w-full border border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 mb-12">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-grow w-full md:w-auto">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="text"
+                placeholder="Cari nama produk..."
+                className="w-full border border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="relative w-full md:w-56">
+              <select
+                className="w-full border border-gray-300 rounded-lg py-3 px-4 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white cursor-pointer"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    d="M6 8l4 4 4-4"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
-          <select
-            className="w-full md:w-48 border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
         </div>
 
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+        {currentProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+              {currentProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onViewDetail={onViewDetail}
+                />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </>
         ) : (
           <div className="text-center py-16">
             <h3 className="text-2xl font-bold text-gray-700">
