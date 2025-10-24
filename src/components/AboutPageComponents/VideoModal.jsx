@@ -10,19 +10,19 @@ export default function VideoModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4 md:p-8 animate-fade-in"
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 md:p-8 animate-fade-in"
       onClick={() => setVideoModalOpen(false)}
     >
       <button
         onClick={() => setVideoModalOpen(false)}
-        className="fixed top-4 right-4 text-white bg-black/50 rounded-full p-2 z-10 transition-transform hover:scale-110"
+        className="fixed top-4 right-4 text-white bg-white/10 backdrop-blur-md rounded-full p-3 z-10 transition-all duration-300 hover:scale-110 hover:bg-white/20 hover:rotate-90"
         aria-label="Close video"
       >
-        <X size={30} />
+        <X size={28} />
       </button>
 
       <div
-        className="w-full max-w-screen-lg aspect-w-16 aspect-h-9"
+        className="w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl transform transition-all duration-500 scale-95 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <iframe
@@ -31,7 +31,7 @@ export default function VideoModal({
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
-          className="absolute top-0 left-0 w-full h-full"
+          className="w-full h-full"
         ></iframe>
       </div>
     </div>
