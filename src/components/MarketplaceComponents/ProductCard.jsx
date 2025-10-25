@@ -1,7 +1,9 @@
-import React from "react";
+import { useState } from "react";
 import { Store } from "lucide-react";
 
 export default function ProductCard({ product, onViewDetail }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -11,37 +13,51 @@ export default function ProductCard({ product, onViewDetail }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 flex flex-col h-full">
-      <div className="relative">
+    <div
+      className="group bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 flex flex-col h-full animate-marketplace-scale-in"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative overflow-hidden aspect-square">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-56 object-cover"
+          className={`w-full h-full object-cover transition-transform duration-700 ${
+            isHovered ? "scale-110" : "scale-100"
+          }`}
         />
-        <div className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+        <div className="absolute top-3 right-3 px-3 py-1.5 bg-white/95 backdrop-blur-sm text-blue-600 text-xs font-bold uppercase tracking-wide rounded-full shadow-lg">
           {product.category}
         </div>
       </div>
+
       <div className="p-5 flex flex-col flex-grow">
-        <h3 className="font-bold text-lg text-gray-800 line-clamp-2 mb-1">
+        <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
           {product.name}
         </h3>
-        <div className="flex items-center text-sm text-gray-500 mb-2">
-          <Store size={14} className="mr-1.5" />
-          <span>{product.seller}</span>
+
+        <div className="flex items-center text-sm text-gray-500 mb-3">
+          <Store size={14} className="mr-1.5 flex-shrink-0" />
+          <span className="truncate">{product.seller}</span>
         </div>
-        <p className="text-xs text-gray-600 line-clamp-2 mb-3 flex-grow">
+
+        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-grow leading-relaxed">
           {product.description}
         </p>
-        <p className="text-xl font-bold text-gray-900 mb-4">
-          {formatPrice(product.price)}
-        </p>
-        <button
-          onClick={() => onViewDetail(product)}
-          className="mt-auto w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300"
-        >
-          Lihat Detail
-        </button>
+
+        <div className="mt-auto pt-3 border-t border-gray-100">
+          <p className="text-2xl font-black text-gray-900 mb-3">
+            {formatPrice(product.price)}
+          </p>
+          <button
+            onClick={() => onViewDetail(product)}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            Lihat Produk
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import Pagination from "../BlogPageComponents/Pagination";
-import { Search } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 
 const generateProducts = (count) => {
   const categories = [
@@ -93,6 +93,7 @@ export default function ProductGrid({ products, onViewDetail }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMobileFilter, setShowMobileFilter] = useState(false); // ✅ Tambahkan state ini
 
   const filteredProducts = useMemo(() => {
     return products
@@ -136,7 +137,7 @@ export default function ProductGrid({ products, onViewDetail }) {
     >
       <div className="container mx-auto px-4">
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 mb-12">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
+          <div className="hidden md:flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-grow w-full md:w-auto">
               <Search
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
@@ -179,6 +180,50 @@ export default function ProductGrid({ products, onViewDetail }) {
                 </svg>
               </div>
             </div>
+          </div>
+
+          <div className="md:hidden space-y-3">
+            <div className="relative">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Cari produk..."
+                className="w-full border-2 border-gray-200 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={() => setShowMobileFilter(!showMobileFilter)}
+              className="w-full flex items-center justify-center gap-2 border-2 border-gray-200 rounded-xl py-3 font-semibold text-gray-700"
+            >
+              <Filter size={18} />
+              Kategori: {selectedCategory}
+            </button>
+
+            {showMobileFilter && (
+              <div className="grid grid-cols-2 gap-2 animate-marketplace-fade-in">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      setShowMobileFilter(false);
+                    }}
+                    className={`py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                      selectedCategory === cat
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

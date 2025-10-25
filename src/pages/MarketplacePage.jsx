@@ -96,7 +96,7 @@ export default function MarketplacePage() {
     <div className="bg-gray-50">
       <MarketplaceHero />
       <ProductGrid products={products} onViewDetail={handleViewDetail} />
-      <JoinCTA />
+      {/* <JoinCTA /> */}
 
       <ProductDetailModal
         product={selectedProduct}
