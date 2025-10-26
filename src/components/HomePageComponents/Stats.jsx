@@ -39,6 +39,7 @@ const stats = [
 export default function Stats() {
   const [visibleCards, setVisibleCards] = useState([]);
   const [animatedNumbers, setAnimatedNumbers] = useState({});
+  const hasAnimated = useRef(new Set());
   const cardRefs = useRef([]);
   const sectionRef = useRef(null);
 
@@ -77,8 +78,9 @@ export default function Stats() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = cardRefs.current.indexOf(entry.target);
-            if (index !== -1 && !visibleCards.includes(index)) {
+            if (index !== -1 && !hasAnimated.current.has(index)) {
               setVisibleCards((prev) => [...prev, index]);
+              hasAnimated.current.add(index);
               setTimeout(() => {
                 animateNumber(index, stats[index].number);
               }, index * 100);
@@ -101,7 +103,7 @@ export default function Stats() {
         if (card) cardObserver.unobserve(card);
       });
     };
-  }, [visibleCards]);
+  }, []);
 
   return (
     <section
