@@ -1,40 +1,6 @@
-import { Quote, ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
-
-const testimonials = [
-  {
-    name: "Jhonni Sigiro",
-    role: "Quality Assurance",
-    text: "Membuat termotivasi untuk memulai dari yang kecil.",
-    rating: 5,
-    avatar: "JS",
-    color: "bg-blue-500",
-  },
-  {
-    name: "Fazat Fairuzia",
-    role: "Mahasiswa",
-    text: "Sangat mudah dipahami terutama bagi pemula, sehingga kami bisa mengetahui dasar untuk mengembangkan bisnis.",
-    rating: 5,
-    avatar: "FF",
-    color: "bg-teal-500",
-  },
-  {
-    name: "Noviana Manjaratna",
-    role: "Student",
-    text: "Sangat membantu untuk teman² yang baru atau sedang menjalani strategi marketing konsinyasi ini. Karena sesuai dengan pemaparan, butuh modal double untuk strategi ini.",
-    rating: 5,
-    avatar: "NM",
-    color: "bg-purple-500",
-  },
-  {
-    name: "Ratu Haerunisa",
-    role: "Mahasiswa",
-    text: "Materinya bagus banget dan sangat bermanfaat untuk pengembangan diri dan bisnis. Terima kasih UMKM Hebat.",
-    rating: 5,
-    avatar: "RH",
-    color: "bg-pink-500",
-  },
-];
+import { ArrowRight, Quote } from "lucide-react";
+import { useEffect, useState } from "react";
+import { testimonialsData } from "../../data/HomePage/testimonialsData";
 
 export default function Testimonials() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -45,7 +11,7 @@ export default function Testimonials() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+      setCurrentIndex((prev) => (prev + 1) % testimonialsData.length);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -116,15 +82,15 @@ export default function Testimonials() {
             }`}
           >
             <div className="relative h-[320px] md:h-[300px]">
-              {testimonials.map((testimonial, index) => (
+              {testimonialsData.map((testimonial, index) => (
                 <div
                   key={index}
                   className={`absolute inset-0 transition-all duration-700 ${
                     index === currentIndex
                       ? "opacity-100 translate-x-0 z-10"
                       : index ===
-                        (currentIndex - 1 + testimonials.length) %
-                          testimonials.length
+                        (currentIndex - 1 + testimonialsData.length) %
+                          testimonialsData.length
                       ? "opacity-0 -translate-x-8 z-0"
                       : "opacity-0 translate-x-8 z-0"
                   }`}
@@ -197,7 +163,7 @@ export default function Testimonials() {
             </div>
 
             <div className="flex justify-center gap-2 mt-6">
-              {testimonials.map((_, index) => (
+              {testimonialsData.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}

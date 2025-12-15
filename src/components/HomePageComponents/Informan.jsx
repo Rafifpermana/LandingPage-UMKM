@@ -1,44 +1,6 @@
-import { Share2, Facebook, X, Linkedin, Instagram } from "lucide-react";
-import { useState, useEffect } from "react";
-
-const speakers = [
-  {
-    name: "Yunita Sari",
-    title: "Kepala Departemen Pengembangan dan Pembinaan Koperasi Kementerian",
-    image: "YS",
-    bgColor: "bg-pink-100",
-  },
-  {
-    name: "Prof. dr. Ova Emilia",
-    title: "Rektor Universitas Gadjah Mada",
-    image: "OE",
-    bgColor: "bg-gray-200",
-  },
-  {
-    name: "Prilly Latuconsina",
-    title: "Artis & Pengusaha",
-    image: "PL",
-    bgColor: "bg-blue-100",
-  },
-  {
-    name: "Suwignyo Budiman",
-    title: "Presiden Komisaris BCA Finance",
-    image: "SB",
-    bgColor: "bg-red-100",
-  },
-  {
-    name: "Perry Warjiyo",
-    title: "Gubernur Bank Indonesia",
-    image: "PW",
-    bgColor: "bg-orange-100",
-  },
-  {
-    name: "Inul Daratista",
-    title: "Penyanyi & Pengusaha",
-    image: "ID",
-    bgColor: "bg-teal-100",
-  },
-];
+import { Facebook, Instagram, Linkedin, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { speakersData } from "../../data/HomePage/speakersData";
 
 export default function SpeakersSlider() {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -62,7 +24,7 @@ export default function SpeakersSlider() {
     if (isPaused) return;
 
     const interval = setInterval(() => {
-      setScrollPosition((prev) => prev + 2.0);
+      setScrollPosition((prev) => prev + 0.5);
     }, 20);
 
     return () => clearInterval(interval);
@@ -85,78 +47,74 @@ export default function SpeakersSlider() {
         <div className="relative">
           <div
             id="speakers-container"
-            className="flex gap-6 overflow-x-hidden"
+            className="flex gap-6 overflow-x-hidden pb-4"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >
-            {[...speakers, ...speakers].map((speaker, index) => (
+            {[...speakersData, ...speakersData].map((speaker, index) => (
               <div
                 key={index}
                 className="flex-shrink-0 w-72"
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
-                <div className="relative group cursor-pointer mb-8">
-                  <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
-                    <div
-                      className={`relative h-64 ${speaker.bgColor} flex items-center justify-center overflow-hidden`}
-                    >
-                      <div className="text-gray-400 text-7xl font-bold opacity-20">
-                        {speaker.image}
+                <div className="relative group cursor-pointer h-full">
+                  <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col border border-gray-100">
+                    <div className="relative h-64 flex items-center justify-center overflow-hidden">
+                      <img
+                        src={speaker.bgImage}
+                        alt="Background"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+
+                      <div className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 z-20 border border-white/30 group-hover:bg-blue-600 group-hover:border-blue-600">
+                        <Share2 size={18} />
                       </div>
 
-                      <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-md hover:bg-blue-600 hover:text-white transition-all duration-300 z-20">
-                        <Share2 size={18} />
-                      </button>
-
                       <div
-                        className={`absolute top-16 right-4 flex flex-col gap-3 transition-all duration-700 ease-out ${
+                        className={`absolute top-16 right-4 flex flex-col gap-3 transition-all duration-500 ease-out z-20 ${
                           hoveredIndex === index
                             ? "opacity-100 translate-y-0"
-                            : "opacity-0 -translate-y-6 pointer-events-none"
+                            : "opacity-0 -translate-y-4 pointer-events-none"
                         }`}
                       >
-                        <button
-                          className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-md hover:bg-blue-600 hover:text-white transition-all duration-300 hover:scale-110"
-                          style={{
-                            transitionDelay:
-                              hoveredIndex === index ? "100ms" : "0ms",
-                          }}
+                        <a
+                          href={speaker.socials.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-lg hover:bg-blue-600 hover:text-white transition-all duration-300 hover:scale-110"
+                          title="Facebook"
                         >
                           <Facebook size={18} />
-                        </button>
-                        <button
-                          className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-md hover:bg-blue-600 hover:text-white transition-all duration-300 hover:scale-110"
-                          style={{
-                            transitionDelay:
-                              hoveredIndex === index ? "100ms" : "0ms",
-                          }}
+                        </a>
+
+                        <a
+                          href={speaker.socials.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-pink-600 shadow-lg hover:bg-pink-600 hover:text-white transition-all duration-300 hover:scale-110"
+                          title="Instagram"
                         >
                           <Instagram size={18} />
-                        </button>
-                        <button
-                          className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-md hover:bg-blue-600 hover:text-white transition-all duration-300 hover:scale-110"
-                          style={{
-                            transitionDelay:
-                              hoveredIndex === index ? "100ms" : "0ms",
-                          }}
+                        </a>
+
+                        <a
+                          href={speaker.socials.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-700 shadow-lg hover:bg-blue-700 hover:text-white transition-all duration-300 hover:scale-110"
+                          title="LinkedIn"
                         >
                           <Linkedin size={18} />
-                        </button>
+                        </a>
                       </div>
-
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-500 ease-in-out ${
-                          hoveredIndex === index ? "opacity-100" : "opacity-0"
-                        }`}
-                      ></div>
                     </div>
 
-                    <div className="p-6 text-center bg-white ">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <div className="p-6 text-center bg-white flex-grow flex flex-col justify-center">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                         {speaker.name}
                       </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
+                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
                         {speaker.title}
                       </p>
                     </div>

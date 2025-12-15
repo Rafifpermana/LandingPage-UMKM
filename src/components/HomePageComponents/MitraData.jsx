@@ -1,23 +1,5 @@
-import { useState, useEffect } from "react";
-
-const partners = [
-  {
-    name: "Universitas Gadjah Mada",
-    logo: "UGM",
-    color: "from-blue-500 to-blue-600",
-  },
-  { name: "Kagama", logo: "KGM", color: "from-yellow-600 to-yellow-700" },
-  { name: "Bank Indonesia", logo: "BI", color: "from-blue-700 to-blue-800" },
-  { name: "Bakti BCA", logo: "BCA", color: "from-blue-600 to-blue-700" },
-  { name: "Bank BRI", logo: "BRI", color: "from-blue-500 to-blue-600" },
-  { name: "Kompas", logo: "KPS", color: "from-red-600 to-red-700" },
-  { name: "Paragon", logo: "PRG", color: "from-purple-600 to-purple-700" },
-  { name: "Kontan", logo: "KTN", color: "from-gray-700 to-gray-800" },
-  { name: "Rumah BUMN", logo: "RBN", color: "from-teal-500 to-teal-600" },
-  { name: "Pertamina", logo: "PTM", color: "from-red-500 to-red-600" },
-  { name: "SIG", logo: "SIG", color: "from-red-600 to-red-700" },
-  { name: "Mind ID", logo: "MID", color: "from-orange-500 to-orange-600" },
-];
+import { useEffect, useState } from "react";
+import { partnersData } from "../../data/HomePage/MitraData";
 
 export default function PartnersSection() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -80,7 +62,7 @@ export default function PartnersSection() {
             }`}
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {partners.map((partner, index) => (
+              {partnersData.map((partner, index) => (
                 <div
                   key={index}
                   className={`transition-all duration-700 transform ${
@@ -94,50 +76,25 @@ export default function PartnersSection() {
                 >
                   <div className="group relative">
                     <div
-                      className={`relative bg-white rounded-2xl p-4 md:p-6 shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-gray-100 overflow-hidden ${
+                      className={`relative bg-white rounded-2xl p-4 md:p-6 shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 overflow-hidden h-24 md:h-28 flex items-center justify-center ${
                         hoveredIndex === index ? "scale-105" : ""
                       }`}
                     >
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${
-                          partner.color
-                        } transition-opacity duration-500 ${
-                          hoveredIndex === index ? "opacity-10" : "opacity-0"
-                        }`}
-                      ></div>
-
-                      <div className="relative z-10 flex items-center justify-center h-12 md:h-16">
-                        <div
-                          className={`text-xl md:text-2xl font-bold transition-all duration-500 ${
-                            hoveredIndex === index
-                              ? "text-transparent bg-clip-text bg-gradient-to-r " +
-                                partner.color
-                                  .replace("from-", "from-")
-                                  .replace("to-", "to-")
-                              : "text-gray-400"
-                          }`}
-                        >
-                          {partner.logo}
-                        </div>
-                      </div>
+                      <img
+                        src={partner.image}
+                        alt={partner.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
 
                       <div
-                        className={`absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-700 ${
-                          hoveredIndex === index ? "animate-shine" : ""
-                        }`}
-                      ></div>
-
-                      <div
-                        className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl ${partner.color} opacity-0 group-hover:opacity-20 transition-all duration-500 rounded-bl-full`}
+                        className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 -skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%]`}
                       ></div>
                     </div>
 
                     <div
-                      className={`absolute -top-2 -right-2 bg-gradient-to-r ${
-                        partner.color
-                      } text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg transition-all duration-500 transform ${
+                      className={`absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg transition-all duration-500 transform ${
                         hoveredIndex === index
-                          ? "opacity-100 scale-100 rotate-12"
+                          ? "opacity-100 scale-100 rotate-6"
                           : "opacity-0 scale-0 rotate-0"
                       }`}
                     >

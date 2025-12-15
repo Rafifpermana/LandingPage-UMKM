@@ -1,81 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { coursesData } from "../../data/HomePage/coursesData";
 import CourseCard from "./CourseCard";
-
-const courses = [
-  {
-    id: 1,
-    title: "Membangun Toko Online Dengan Mudah (WooCommerce)",
-    level: "Beginner",
-    price: "Gratis",
-    lessons: 8,
-    students: 83,
-    duration: "8 Hours",
-    rating: 4.8,
-    image: "https://placehold.co/600x400/34d399/ffffff?text=WooCommerce",
-    shortDescription: "Belajar WooCommerce dari nol sampai mahir.",
-  },
-  {
-    id: 2,
-    title: "Grow Personal Financial Security & Principles",
-    level: "Expert",
-    price: "Gratis",
-    lessons: 12,
-    students: 70,
-    duration: "12 Weeks",
-    rating: 4.9,
-    image: "https://placehold.co/600x400/f87171/ffffff?text=Finance",
-    shortDescription: "Manajemen keuangan pribadi dan investasi.",
-  },
-  {
-    id: 3,
-    title: "The Complete Guide to Build RESTful API",
-    level: "All Levels",
-    price: "Gratis",
-    lessons: 15,
-    students: 15,
-    duration: "20 Hours",
-    rating: 4.7,
-    image: "https://placehold.co/600x400/60a5fa/ffffff?text=API",
-    shortDescription: "Panduan lengkap membangun API dengan Node.js.",
-  },
-  {
-    id: 4,
-    title: "Competitive Strategy Law for Management",
-    level: "All Levels",
-    price: "Gratis",
-    lessons: 10,
-    students: 360,
-    duration: "25 Hours",
-    rating: 4.6,
-    image: "https://placehold.co/600x400/c084fc/ffffff?text=Strategy",
-    shortDescription: "Aspek hukum dalam strategi bisnis kompetitif.",
-  },
-  {
-    id: 5,
-    title: "Dasar Fotografi Produk untuk UMKM",
-    level: "Beginner",
-    price: 150000,
-    lessons: 10,
-    students: 150,
-    duration: "6 Hours",
-    rating: 4.9,
-    image: "https://placehold.co/600x400/fbbf24/ffffff?text=Photo",
-    shortDescription: "Tips foto produk menarik hanya dengan smartphone.",
-  },
-  {
-    id: 6,
-    title: "Advanced Social Media Marketing",
-    level: "Expert",
-    price: 350000,
-    lessons: 15,
-    students: 95,
-    duration: "4 Weeks",
-    rating: 4.8,
-    image: "https://placehold.co/600x400/a78bfa/ffffff?text=Social+Media",
-    shortDescription: "Strategi lanjutan Facebook Ads, Instagram, TikTok.",
-  },
-];
 
 export default function Courses() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -130,12 +56,12 @@ export default function Courses() {
 
   const scrollPrev = () => {
     const newIndex =
-      currentIndex > 0 ? currentIndex - 1 : courses.length - itemsPerView;
+      currentIndex > 0 ? currentIndex - 1 : coursesData.length - itemsPerView;
     scrollToIndex(newIndex);
   };
 
   const scrollNext = () => {
-    const maxIndex = courses.length - itemsPerView;
+    const maxIndex = coursesData.length - itemsPerView;
     const newIndex = currentIndex < maxIndex ? currentIndex + 1 : 0;
     scrollToIndex(newIndex);
   };
@@ -194,7 +120,7 @@ export default function Courses() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          {courses.map((course) => (
+          {coursesData.map((course) => (
             <div
               key={course.id}
               className="flex-none w-[85%] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] snap-start"

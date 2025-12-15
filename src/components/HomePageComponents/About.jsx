@@ -1,19 +1,6 @@
-import React, { useRef, useEffect, useState } from "react";
-import {
-  CheckCircle,
-  Award,
-  Users,
-  TrendingUp,
-  Target,
-  Sparkles,
-} from "lucide-react";
-
-const features = [
-  { icon: Users, text: "Expert Trainers", color: "text-blue-600" },
-  { icon: TrendingUp, text: "Online Remote Learning", color: "text-green-600" },
-  { icon: Target, text: "Lifetime Access", color: "text-purple-600" },
-  { icon: Sparkles, text: "Free", color: "text-amber-600" },
-];
+import { Award, CheckCircle, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { aboutData, aboutFeatures } from "../../data/HomePage/aboutData";
 
 export default function About() {
   const [isImageVisible, setIsImageVisible] = useState(false);
@@ -98,30 +85,21 @@ export default function About() {
           >
             <div className="relative z-10 aspect-[4/3] lg:aspect-[4/3] rounded-2xl lg:rounded-3xl shadow-2xl overflow-hidden group">
               <img
-                src="https://placehold.co/800x600/8b5cf6/ffffff?text=Tim+UMKM+Hebat"
-                alt="Tim UMKM Hebat"
+                src={aboutData.image}
+                alt={aboutData.imageAlt}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-purple-900/50 via-transparent to-transparent"></div>
-
-              <div className="absolute bottom-4 left-4 right-4 lg:bottom-6 lg:left-6 lg:right-6 text-white z-20 hidden lg:block">
-                <h3 className="text-xl lg:text-2xl font-bold mb-1 lg:mb-2">
-                  Tim UMKM Hebat
-                </h3>
-                <p className="text-xs lg:text-sm text-white/90">
-                  Bersama memajukan UMKM Indonesia
-                </p>
-              </div>
             </div>
 
-            <div className="absolute -top-4 -right-4 lg:-top-6 lg:-right-6 bg-white rounded-xl lg:rounded-2xl shadow-xl p-3 lg:p-5 hidden lg:block animate-float-slow border border-gray-100">
+            <div className="absolute -top-4 -right-4 lg:-top-6 lg:-right-6 bg-white rounded-xl lg:rounded-2xl shadow-xl p-3 lg:p-5 hidden lg:block animate-float-slow border border-gray-100 z-30">
               <div className="flex items-center gap-2 lg:gap-3">
                 <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg lg:rounded-xl flex items-center justify-center">
                   <Users className="text-white" size={20} />
                 </div>
                 <div>
                   <div className="text-xl lg:text-2xl font-bold text-gray-900">
-                    10K+
+                    {aboutData.stats.activeMembers}
                   </div>
                   <div className="text-xs text-gray-500">Active Members</div>
                 </div>
@@ -154,7 +132,7 @@ export default function About() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="font-bold text-gray-900 text-base lg:text-lg">
-                  29+
+                  {aboutData.stats.awards}
                 </span>
                 <span className="text-gray-600 text-xs lg:text-sm">
                   Wonderful Awards
@@ -203,25 +181,16 @@ export default function About() {
                   : "opacity-0 translate-y-8"
               }`}
             >
-              <div
-                ref={(el) => (featureRefs.current[0] = el)}
-                className={`transition-all duration-700 transform ${
-                  visibleFeatures.includes(0)
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-8"
-                }`}
-              >
-                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-gray-700">
-                  {features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <CheckCircle
-                        className="text-green-500 flex-shrink-0"
-                        size={16}
-                      />
-                      <span>{feature.text}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-gray-700">
+                {aboutFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <CheckCircle
+                      className="text-green-500 flex-shrink-0"
+                      size={16}
+                    />
+                    <span>{feature.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

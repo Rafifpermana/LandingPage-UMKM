@@ -1,40 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
-import { Users, BookOpen, Award, BarChart3 } from "lucide-react";
-
-const stats = [
-  {
-    icon: BookOpen,
-    number: "455",
-    label: "Kelas Online",
-    color: "from-blue-500 to-cyan-500",
-    bgColor: "bg-blue-50",
-    iconColor: "text-blue-600",
-  },
-  {
-    icon: Users,
-    number: "109",
-    label: "Instruktur Ahli",
-    color: "from-purple-500 to-pink-500",
-    bgColor: "bg-purple-50",
-    iconColor: "text-purple-600",
-  },
-  {
-    icon: BarChart3,
-    number: "10,657",
-    label: "Member Aktif",
-    color: "from-green-500 to-emerald-500",
-    bgColor: "bg-green-50",
-    iconColor: "text-green-600",
-  },
-  {
-    icon: Award,
-    number: "8,000+",
-    label: "Sertifikat Diterbitkan",
-    color: "from-amber-500 to-orange-500",
-    bgColor: "bg-amber-50",
-    iconColor: "text-amber-600",
-  },
-];
+import { useEffect, useRef, useState } from "react";
+import { statsData } from "../../data/HomePage/statsData";
 
 export default function Stats() {
   const [visibleCards, setVisibleCards] = useState([]);
@@ -82,7 +47,7 @@ export default function Stats() {
               setVisibleCards((prev) => [...prev, index]);
               hasAnimated.current.add(index);
               setTimeout(() => {
-                animateNumber(index, stats[index].number);
+                animateNumber(index, statsData[index].number);
               }, index * 100);
             }
           }
@@ -117,7 +82,7 @@ export default function Stats() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 max-w-6xl mx-auto">
-          {stats.map((stat, index) => (
+          {statsData.map((stat, index) => (
             <div
               key={index}
               ref={(el) => (cardRefs.current[index] = el)}
