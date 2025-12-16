@@ -1,11 +1,7 @@
-import React from "react";
 import { X } from "lucide-react";
+import { VideoData } from "../../data/Aboutpage/Video";
 
-export default function VideoModal({
-  isVideoModalOpen,
-  setVideoModalOpen,
-  videoId = "dQw4w9WgXcQ",
-}) {
+export default function VideoModal({ isVideoModalOpen, setVideoModalOpen }) {
   if (!isVideoModalOpen) return null;
 
   return (
@@ -26,7 +22,7 @@ export default function VideoModal({
         onClick={(e) => e.stopPropagation()}
       >
         <iframe
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+          src={VideoData.youtubeUrl}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
