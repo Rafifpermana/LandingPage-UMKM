@@ -1,0 +1,7 @@
+export const Hero = {
+  image:
+    "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop",
+  title: " Hubungi Kami ",
+  subtitle:
+    " Punya pertanyaan atau ingin berkolaborasi? Kami siap mendengarkan ",
+};
