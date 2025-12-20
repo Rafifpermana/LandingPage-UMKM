@@ -2,6 +2,8 @@ import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { authService } from "../../services/authService";
+
 export default function AdminLoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,20 +17,15 @@ export default function AdminLoginForm() {
     setError("");
     setIsLoading(true);
 
-    // --- SIMULASI BACKEND (DUMMY) ---
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await authService.login(email, password);
 
-    if (email === "admin@umkmhebat.id" && password === "admin123") {
-      localStorage.setItem("adminToken", "ini-adalah-token-rahasia-dummy");
-
-      alert("Login Berhasil!");
       navigate("/admin/dashboard");
-    } else {
-      setError("Email atau password salah.");
+    } catch (err) {
+      setError(err.message || "Terjadi kesalahan pada server");
+    } finally {
+      setIsLoading(false);
     }
-    // -------------------------------
-
-    setIsLoading(false);
   };
 
   return (
@@ -71,7 +68,7 @@ export default function AdminLoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-              placeholder="admin@umkmhebat.id"
+              placeholder="Masukkan email"
             />
           </div>
         </div>
@@ -107,25 +104,6 @@ export default function AdminLoginForm() {
           </div>
         </div>
 
-        {/* Options */}
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              className="w-4 h-4 rounded border-slate-600 bg-slate-900/50 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-0 cursor-pointer"
-            />
-            <span className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
-              Ingat saya
-            </span>
-          </label>
-          <button
-            type="button"
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium"
-          >
-            Lupa password?
-          </button>
-        </div>
-
         {/* Submit Button */}
         <button
           type="submit"
@@ -142,16 +120,6 @@ export default function AdminLoginForm() {
           )}
         </button>
       </form>
-
-      {/* Footer Demo Info */}
-      <div className="mt-8 pt-6 border-t border-white/10 text-center">
-        <p className="text-slate-500 text-xs">
-          Kredensial Demo: <br />
-          <span className="font-mono text-blue-300">
-            admin@umkmhebat.id
-          </span> / <span className="font-mono text-blue-300">admin123</span>
-        </p>
-      </div>
     </div>
   );
 }
