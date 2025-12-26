@@ -1,600 +1,588 @@
 import {
-  FileVideo,
+  ChevronDown,
   Image as ImageIcon,
-  Layers,
-  Plus,
+  Loader2,
   Save,
   Trash2,
   Upload,
   Video,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { API_IMAGE_URL } from "../../../../services/api";
+import { blogService } from "../../../../services/blogService";
+
+const generateSlug = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-");
+};
+const getMediaUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_IMAGE_URL}/${path}`;
+};
 
 export default function BlogFormModal({
   isOpen,
   onClose,
-  onSubmit,
-  initialData,
+  postData,
+  onSuccess,
 }) {
-  // State Data Teks
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
     category: "",
     author: "",
+    status: "Draft",
     excerpt: "",
     content: "",
-    is_published: false,
+    images: [],
+    content_videos: [],
   });
 
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
 
-  const [galleryFiles, setGalleryFiles] = useState([]);
-  const [galleryPreviews, setGalleryPreviews] = useState([]);
+  const [newGalleryFiles, setNewGalleryFiles] = useState([]);
+  const [newVideoFiles, setNewVideoFiles] = useState([]);
 
-  const [contentImageFiles, setContentImageFiles] = useState([]);
-  const [contentImagePreviews, setContentImagePreviews] = useState([]);
-
-  const [videoFiles, setVideoFiles] = useState([]);
-  const [videoPreviews, setVideoPreviews] = useState([]);
-
-  const thumbnailInputRef = useRef(null);
-  const galleryInputRef = useRef(null);
-  const contentImageInputRef = useRef(null);
-  const videoInputRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (initialData) {
+    if (postData) {
       setFormData({
-        title: initialData.title || "",
-        slug: initialData.slug || "",
-        category: initialData.category || "",
-        author: initialData.author || "",
-        excerpt: initialData.excerpt || "",
-        content: initialData.content || "",
-        is_published: initialData.is_published || false,
+        title: postData.title || "",
+        slug: postData.slug || "",
+        category: postData.category || "",
+        author: postData.author || "",
+        status: postData.is_published ? "Published" : "Draft",
+        excerpt: postData.excerpt || "",
+        content: postData.content || "",
+        images: postData.images || [],
+        content_videos: postData.content_videos || [],
       });
-
-      if (initialData.image) setThumbnailPreview(initialData.image);
-      if (initialData.images?.length > 0)
-        setGalleryPreviews(initialData.images);
-      if (initialData.content_images?.length > 0)
-        setContentImagePreviews(initialData.content_images);
-      if (initialData.content_videos?.length > 0)
-        setVideoPreviews(initialData.content_videos);
+      setThumbnailPreview(getMediaUrl(postData.image));
     } else {
       setFormData({
         title: "",
         slug: "",
-        category: "Berita",
-        author: "Admin",
+        category: "",
+        author: "",
+        status: "Draft",
         excerpt: "",
         content: "",
-        is_published: false,
+        images: [],
+        content_videos: [],
       });
       setThumbnailFile(null);
       setThumbnailPreview("");
-      setGalleryFiles([]);
-      setGalleryPreviews([]);
-      setContentImageFiles([]);
-      setContentImagePreviews([]);
-      setVideoFiles([]);
-      setVideoPreviews([]);
+      setNewGalleryFiles([]);
+      setNewVideoFiles([]);
     }
-  }, [initialData, isOpen]);
+  }, [postData, isOpen]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleTitleChange = (e) => {
-    const title = e.target.value;
-    if (!initialData) {
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)+/g, "");
-      setFormData((prev) => ({ ...prev, title, slug }));
+    const { name, value } = e.target;
+    if (name === "title") {
+      setFormData((prev) => ({
+        ...prev,
+        title: value,
+        slug: generateSlug(value),
+      }));
     } else {
-      setFormData((prev) => ({ ...prev, title }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
-  };
-
-  const handleFileSelect = (
-    e,
-    setFilesState,
-    setPreviewsState,
-    isVideo = false
-  ) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setFilesState((prev) => [...prev, ...files]);
-      const newPreviews = files.map((file) => URL.createObjectURL(file));
-      setPreviewsState((prev) => [...prev, ...newPreviews]);
-    }
-  };
-
-  const handleRemoveItem = (index, setFilesState, setPreviewsState) => {
-    setFilesState((prev) => prev.filter((_, i) => i !== index));
-    setPreviewsState((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleThumbnailChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Ukuran thumbnail terlalu besar (Max 5MB)");
+        return;
+      }
       setThumbnailFile(file);
       setThumbnailPreview(URL.createObjectURL(file));
     }
   };
-  const handleRemoveThumbnail = () => {
-    setThumbnailFile(null);
-    setThumbnailPreview("");
-    if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+
+  const handleGalleryChange = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = [];
+    files.forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`Gambar ${file.name} terlalu besar (>5MB).`);
+      } else {
+        validFiles.push(file);
+      }
+    });
+    setNewGalleryFiles((prev) => [...prev, ...validFiles]);
+    e.target.value = "";
   };
+
+  const removeNewGalleryFile = (index) =>
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeOldGalleryImage = (index) =>
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+
+  const handleVideoChange = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = [];
+    const maxSize = 50 * 1024 * 1024;
+    let hasLargeFile = false;
+
+    files.forEach((file) => {
+      if (file.size > maxSize) hasLargeFile = true;
+      else validFiles.push(file);
+    });
+
+    if (hasLargeFile)
+      alert("Beberapa video terlalu besar (>50MB). Mohon kompres dulu.");
+    if (validFiles.length > 0)
+      setNewVideoFiles((prev) => [...prev, ...validFiles]);
+    e.target.value = "";
+  };
+
+  const removeNewVideoFile = (index) =>
+    setNewVideoFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeOldVideo = (index) =>
+    setFormData((prev) => ({
+      ...prev,
+      content_videos: prev.content_videos.filter((_, i) => i !== index),
+    }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    // 1. KONSEP "TANPA UBAH BACKEND":
-    // Karena backend hanya menerima STRING URL, Anda harus mengupload file fisik (thumbnailFile, galleryFiles, dll)
-    // ke layanan cloud storage (Cloudinary/Firebase) DI SINI terlebih dahulu.
+    try {
+      const dataToSend = new FormData();
+      dataToSend.append("title", formData.title);
+      dataToSend.append("slug", formData.slug);
+      dataToSend.append("category", formData.category);
+      dataToSend.append("author", formData.author);
+      dataToSend.append("excerpt", formData.excerpt);
+      dataToSend.append("content", formData.content);
+      dataToSend.append("is_published", formData.status === "Published");
 
-    // Contoh Logika (Pseudo-code):
-    /*
-      const uploadedThumbnailUrl = await uploadToCloudinary(thumbnailFile);
-      const uploadedGalleryUrls = await Promise.all(galleryFiles.map(f => uploadToCloudinary(f)));
-      const uploadedVideoUrls = await Promise.all(videoFiles.map(f => uploadToCloudinary(f)));
-    */
+      if (thumbnailFile) {
+        dataToSend.append("image", thumbnailFile);
+      } else if (postData && postData.image) {
+        dataToSend.append("image", postData.image);
+      }
 
-    // 2. UNTUK SAAT INI (Simulasi):
-    // Kita akan mengirimkan URL preview (blob) atau URL lama jika tidak ada file baru.
-    // **PENTING:** Dalam produksi, ganti bagian ini dengan URL hasil upload asli.
+      newGalleryFiles.forEach((file) =>
+        dataToSend.append("images_files", file)
+      );
+      formData.images.forEach((url) => dataToSend.append("images", url));
 
-    const payload = {
-      ...formData,
-      image: thumbnailFile ? thumbnailPreview : initialData?.image || "",
-      images: [
-        ...(initialData?.images || []),
-        ...galleryPreviews.filter((p) => p.startsWith("blob:")),
-      ], // Campuran URL lama & blob baru (simulasi)
-      content_images: [
-        ...(initialData?.content_images || []),
-        ...contentImagePreviews.filter((p) => p.startsWith("blob:")),
-      ],
-      content_videos: [
-        ...(initialData?.content_videos || []),
-        ...videoPreviews.filter((p) => p.startsWith("blob:")),
-      ],
-    };
+      newVideoFiles.forEach((file) => dataToSend.append("videos_files", file));
+      formData.content_videos.forEach((url) =>
+        dataToSend.append("content_videos", url)
+      );
 
-    // Tips: Jika ingin debug file fisik yang siap diupload:
-    console.log("File Siap Upload:", {
-      thumbnail: thumbnailFile,
-      gallery: galleryFiles,
-      contentImages: contentImageFiles,
-      videos: videoFiles,
-    });
+      if (postData) {
+        await blogService.updatePost(postData.id, dataToSend);
+      } else {
+        if (!thumbnailFile) throw new Error("Gambar sampul wajib diupload!");
+        await blogService.createPost(dataToSend);
+      }
 
-    onSubmit(payload);
+      onSuccess();
+      onClose();
+    } catch (err) {
+      setError(err.message || "Gagal menyimpan data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 sm:p-6">
-      <div
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      ></div>
-
-      <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col relative z-10 overflow-hidden animate-scale-in">
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-white z-20">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl w-full max-w-5xl h-[90vh] shadow-2xl flex flex-col overflow-hidden relative">
+        {/* 1. HEADER  */}
+        <div className="flex-none px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white z-10">
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              {initialData ? "Edit Artikel" : "Tulis Artikel Baru"}
+              {postData ? "Edit Artikel" : "Buat Artikel Baru"}
             </h2>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Lengkapi konten, gambar, dan video pendukung.
+            <p className="text-sm text-gray-500">
+              Isi detail konten blog Anda di bawah ini.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
-        {/* Form Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50/50">
-          <form id="blog-form" onSubmit={handleSubmit} className="space-y-8">
-            {/* --- GROUP 1: INFO DASAR --- */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
-                Informasi Artikel
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Judul Artikel
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    required
-                    value={formData.title}
-                    onChange={handleTitleChange}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                    placeholder="Judul..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    name="slug"
-                    required
-                    value={formData.slug}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50"
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Kategori
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white"
-                    >
-                      <option value="Berita">Berita</option>
-                      <option value="Tips Bisnis">Tips Bisnis</option>
-                      <option value="Event">Event</option>
-                    </select>
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Penulis
-                    </label>
-                    <input
-                      type="text"
-                      name="author"
-                      value={formData.author}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300"
-                    />
-                  </div>
-                </div>
+        {/* 2. CONTENT  */}
+        <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+          <form id="blogForm" onSubmit={handleSubmit} className="space-y-8">
+            {error && (
+              <div className="bg-red-50 text-red-700 p-4 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                <span className="font-bold">Error:</span> {error}
               </div>
-            </div>
+            )}
 
-            {/* --- GROUP 2: MEDIA (GAMBAR & VIDEO) --- */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-8">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
-                Media & Galeri
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* 1. Gambar Utama */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <ImageIcon size={18} className="text-blue-600" /> Gambar
-                    Utama (Thumbnail)
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-4 space-y-6">
+                <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                  <label className="block text-sm font-bold text-gray-700 mb-3">
+                    Thumbnail Utama
                   </label>
-                  {!thumbnailPreview ? (
-                    <div
-                      onClick={() => thumbnailInputRef.current.click()}
-                      className="border-2 border-dashed border-gray-300 rounded-xl h-48 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50 hover:border-blue-400 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <Upload size={20} />
-                      </div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Klik atau tarik gambar
-                      </p>
-                      <input
-                        type="file"
-                        ref={thumbnailInputRef}
-                        onChange={handleThumbnailChange}
-                        accept="image/*"
-                        className="hidden"
-                      />
-                    </div>
-                  ) : (
-                    <div className="relative rounded-xl overflow-hidden h-48 bg-gray-100 group border border-gray-200">
-                      <img
-                        src={thumbnailPreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button
-                          type="button"
-                          onClick={handleRemoveThumbnail}
-                          className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Galeri Gambar */}
-                <div className="flex flex-col h-full">
-                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <Layers size={18} className="text-purple-600" /> Galeri Foto
-                    (Slide)
-                  </label>
-                  <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="grid grid-cols-3 gap-3">
-                      {galleryPreviews.map((src, idx) => (
-                        <div
-                          key={idx}
-                          className="relative aspect-square rounded-lg overflow-hidden group border border-gray-200"
-                        >
-                          <img
-                            src={src}
-                            alt="Gallery"
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRemoveItem(
-                                idx,
-                                setGalleryFiles,
-                                setGalleryPreviews
-                              )
-                            }
-                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                          >
-                            <X size={12} />
-                          </button>
+                  <div
+                    className={`relative border-2 border-dashed rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all group ${
+                      thumbnailPreview
+                        ? "border-blue-500 bg-gray-900"
+                        : "border-gray-300 hover:bg-gray-50 hover:border-blue-400"
+                    }`}
+                    onClick={() =>
+                      document.getElementById("thumbInput").click()
+                    }
+                  >
+                    {thumbnailPreview ? (
+                      <>
+                        <img
+                          src={thumbnailPreview}
+                          alt="Preview"
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-white text-xs font-medium bg-black/50 px-3 py-1 rounded-full">
+                            Ganti Gambar
+                          </span>
                         </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => galleryInputRef.current.click()}
-                        className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-purple-500 hover:bg-purple-50 transition-colors text-gray-400 hover:text-purple-600"
-                      >
-                        <Plus size={20} />
-                        <span className="text-[10px] mt-1">Add</span>
-                      </button>
-                    </div>
-                    <input
-                      type="file"
-                      multiple
-                      ref={galleryInputRef}
-                      onChange={(e) =>
-                        handleFileSelect(e, setGalleryFiles, setGalleryPreviews)
-                      }
-                      accept="image/*"
-                      className="hidden"
-                    />
-                  </div>
-                </div>
-
-                {/* 3. Video Konten (Drag & Drop Video) */}
-                <div className="col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <Video size={18} className="text-red-600" /> Video Konten
-                    (MP4/WebM)
-                  </label>
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    {videoPreviews.length === 0 && (
-                      <div
-                        onClick={() => videoInputRef.current.click()}
-                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-red-50 hover:border-red-400 transition-all mb-4"
-                      >
-                        <FileVideo size={32} className="text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600">
-                          Upload Video di sini
-                        </p>
-                      </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="bg-blue-50 p-3 rounded-full mb-2 group-hover:scale-110 transition-transform">
+                          <Upload className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <span className="text-xs text-gray-500 font-medium">
+                          Klik untuk upload
+                        </span>
+                      </>
                     )}
+                    <input
+                      id="thumbInput"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleThumbnailChange}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {videoPreviews.map((src, idx) => (
-                        <div
-                          key={idx}
-                          className="relative aspect-video rounded-lg overflow-hidden bg-black group border border-gray-300"
-                        >
-                          <video
-                            src={src}
-                            className="w-full h-full object-cover opacity-80"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <FileVideo
-                              className="text-white opacity-50"
-                              size={24}
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRemoveItem(
-                                idx,
-                                setVideoFiles,
-                                setVideoPreviews
-                              )
-                            }
-                            className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ))}
-                      {videoPreviews.length > 0 && (
+                {/* Video */}
+                <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                  <label className="block text-sm font-bold text-gray-700 mb-3 flex justify-between items-center">
+                    <span>Video Content</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document.getElementById("videoInput").click()
+                      }
+                      className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-bold hover:bg-blue-100 transition"
+                    >
+                      + Tambah
+                    </button>
+                  </label>
+
+                  <input
+                    id="videoInput"
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    onChange={handleVideoChange}
+                    className="hidden"
+                  />
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Old Videos */}
+                    {formData.content_videos.map((url, idx) => (
+                      <div
+                        key={`v-old-${idx}`}
+                        className="relative group rounded-lg overflow-hidden bg-black aspect-video border border-gray-100"
+                      >
+                        <video
+                          src={getMediaUrl(url)}
+                          controls
+                          className="w-full h-full object-contain"
+                        />
                         <button
                           type="button"
-                          onClick={() => videoInputRef.current.click()}
-                          className="aspect-video rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-red-500 hover:bg-red-50 transition-colors text-gray-400 hover:text-red-600"
+                          onClick={() => removeOldVideo(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                         >
-                          <Plus size={24} />
-                          <span className="text-xs mt-1">Tambah Video</span>
+                          <Trash2 size={12} />
                         </button>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      multiple
-                      ref={videoInputRef}
-                      onChange={(e) =>
-                        handleFileSelect(e, setVideoFiles, setVideoPreviews)
-                      }
-                      accept="video/*"
-                      className="hidden"
-                    />
-                  </div>
-                </div>
-
-                {/* 4. Gambar Konten (Content Images) */}
-                <div className="col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <ImageIcon size={18} className="text-green-600" /> Gambar
-                    Tambahan (Untuk Konten)
-                  </label>
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
-                      {contentImagePreviews.map((src, idx) => (
-                        <div
-                          key={idx}
-                          className="relative aspect-square rounded-lg overflow-hidden group border border-gray-200"
-                        >
-                          <img
-                            src={src}
-                            alt="Content"
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRemoveItem(
-                                idx,
-                                setContentImageFiles,
-                                setContentImagePreviews
-                              )
-                            }
-                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => contentImageInputRef.current.click()}
-                        className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors text-gray-400 hover:text-green-600"
+                      </div>
+                    ))}
+                    {/* New Videos */}
+                    {newVideoFiles.map((file, idx) => (
+                      <div
+                        key={`v-new-${idx}`}
+                        className="relative group rounded-lg overflow-hidden bg-black aspect-video border-2 border-blue-400"
                       >
-                        <Plus size={20} />
-                      </button>
-                    </div>
-                    <input
-                      type="file"
-                      multiple
-                      ref={contentImageInputRef}
-                      onChange={(e) =>
-                        handleFileSelect(
-                          e,
-                          setContentImageFiles,
-                          setContentImagePreviews
-                        )
+                        <video
+                          src={URL.createObjectURL(file)}
+                          controls
+                          className="w-full h-full object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewVideoFile(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-md hover:bg-red-600"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {formData.content_videos.length === 0 &&
+                      newVideoFiles.length === 0 && (
+                        <div className="col-span-2 py-8 text-center border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-xs flex flex-col items-center justify-center gap-2">
+                          <Video size={20} className="opacity-40" />
+                          <span>Belum ada video</span>
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                {/* Gallery */}
+                <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                  <label className="block text-sm font-bold text-gray-700 mb-3 flex justify-between items-center">
+                    <span>Galeri Foto</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document.getElementById("galleryInput").click()
                       }
-                      accept="image/*"
-                      className="hidden"
-                    />
+                      className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-bold hover:bg-blue-100 transition"
+                    >
+                      + Tambah
+                    </button>
+                  </label>
+
+                  <input
+                    id="galleryInput"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryChange}
+                    className="hidden"
+                  />
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {formData.images.map((url, idx) => (
+                      <div
+                        key={`g-old-${idx}`}
+                        className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group"
+                      >
+                        <img
+                          src={getMediaUrl(url)}
+                          alt="old"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeOldGalleryImage(idx)}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    {newGalleryFiles.map((file, idx) => (
+                      <div
+                        key={`g-new-${idx}`}
+                        className="relative aspect-square rounded-lg overflow-hidden border-2 border-blue-400 group"
+                      >
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="new"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewGalleryFile(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {formData.images.length === 0 &&
+                      newGalleryFiles.length === 0 && (
+                        <div className="col-span-3 py-6 text-center border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-xs flex flex-col items-center justify-center gap-2">
+                          <ImageIcon size={20} className="opacity-40" />
+                          <span>Belum ada gambar</span>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* --- GROUP 3: KONTEN TEKS --- */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ringkasan
-                </label>
-                <textarea
-                  name="excerpt"
-                  rows="2"
-                  value={formData.excerpt}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300"
-                  placeholder="Ringkasan singkat..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Konten Lengkap
-                </label>
-                <textarea
-                  name="content"
-                  rows="8"
-                  value={formData.content}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 font-mono text-sm"
-                  placeholder="Isi artikel..."
-                />
-              </div>
-            </div>
+              <div className="lg:col-span-8 space-y-5">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-1">
+                        Judul Artikel
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                        placeholder="Contoh: Strategi Pemasaran Digital 2024"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                      />
+                    </div>
 
-            {/* --- GROUP 4: STATUS --- */}
-            <div className="flex items-center justify-between p-4 rounded-xl border bg-gray-50 border-gray-200">
-              <div>
-                <span
-                  className={`font-bold ${
-                    formData.is_published ? "text-blue-800" : "text-gray-700"
-                  }`}
-                >
-                  Status Publikasi
-                </span>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {formData.is_published ? "Langsung tayang." : "Draft."}
-                </p>
+                    <div className="col-span-2 lg:col-span-1">
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                        Kategori
+                      </label>
+                      <div className="relative">
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-xl outline-none focus:border-blue-500 bg-white appearance-none cursor-pointer"
+                        >
+                          <option value="">Pilih Kategori...</option>
+                          <option value="Teknologi">Teknologi</option>
+                          <option value="Bisnis">Bisnis</option>
+                          <option value="Edukasi">Edukasi</option>
+                          <option value="Keuangan">Keuangan</option>
+                        </select>
+                        <div className="absolute right-3 top-3 pointer-events-none text-gray-400">
+                          <ChevronDown size={20} className="text-black" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-span-2 lg:col-span-1">
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                        Penulis
+                      </label>
+                      <input
+                        type="text"
+                        name="author"
+                        value={formData.author}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div className="col-span-2">
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">
+                        Slug (URL Preview)
+                      </label>
+                      <input
+                        type="text"
+                        name="slug"
+                        value={formData.slug}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 text-gray-500 rounded-xl text-sm italic"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">
+                      Ringkasan (Excerpt)
+                    </label>
+                    <textarea
+                      name="excerpt"
+                      value={formData.excerpt}
+                      onChange={handleChange}
+                      rows={3}
+                      placeholder="Tulis ringkasan singkat untuk tampilan kartu..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:border-blue-500 resize-none"
+                    ></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">
+                      Konten Lengkap
+                    </label>
+                    <textarea
+                      name="content"
+                      value={formData.content}
+                      onChange={handleChange}
+                      rows={12}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:border-blue-500"
+                      placeholder="Mulai menulis artikel Anda di sini..."
+                    ></textarea>
+                  </div>
+                </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="is_published"
-                  checked={formData.is_published}
-                  onChange={handleChange}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
             </div>
           </form>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-5 border-t border-gray-100 bg-gray-50 z-20">
-          <button
-            onClick={onClose}
-            className="px-6 py-2.5 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 flex items-center gap-2 transition-all active:scale-95"
-          >
-            <Save size={18} /> Simpan
-          </button>
+        {/* 3. FOOTER  */}
+        <div className="flex-none px-6 py-4 border-t border-gray-100 bg-white flex justify-between items-center z-10">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-600">Status:</span>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold border-none outline-none cursor-pointer ${
+                formData.status === "Published"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              <option value="Published">Published</option>
+              <option value="Draft">Draft</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              form="blogForm"
+              disabled={isLoading}
+              className="px-6 py-2.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2 shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 hover:-translate-y-0.5"
+            >
+              {isLoading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Save size={18} />
+              )}
+              <span>Simpan Artikel</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>,
