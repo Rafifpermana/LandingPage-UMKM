@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import {
   Linkedin,
-  Mail,
-  Globe,
-  Share2,
+  Instagram,
+  Facebook,
+  Twitter,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -14,7 +14,10 @@ export default function TeamMemberCard({
   description,
   image,
   color,
-  reverse = false,
+  linkedin,
+  instagram,
+  facebook,
+  twitter,
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -43,6 +46,8 @@ export default function TeamMemberCard({
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
+  const hasSocialMedia = linkedin || instagram || facebook || twitter;
+
   return (
     <div
       className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 max-w-sm mx-auto"
@@ -60,6 +65,10 @@ export default function TeamMemberCard({
                 ? "opacity-100 scale-100"
                 : "opacity-0 scale-110"
             } ${isHovered && index === currentImageIndex ? "scale-110" : ""}`}
+            onError={(e) => {
+              e.target.src =
+                "https://placehold.co/400x500/334155/94a3b8?text=Photo";
+            }}
           />
         ))}
 
@@ -118,32 +127,64 @@ export default function TeamMemberCard({
           {description}
         </p>
 
-        <div className="flex items-center gap-3">
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-200"
-            aria-label="LinkedIn"
-          >
-            <Linkedin size={16} />
-          </button>
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-200"
-            aria-label="Email"
-          >
-            <Mail size={16} />
-          </button>
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-200"
-            aria-label="Website"
-          >
-            <Globe size={16} />
-          </button>
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-200"
-            aria-label="Share"
-          >
-            <Share2 size={16} />
-          </button>
-        </div>
+        {hasSocialMedia && (
+          <div className="flex items-center gap-3">
+            {linkedin && (
+              <a
+                href={linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-blue-700 hover:text-white text-slate-700 transition-all duration-200"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+              >
+                <Linkedin size={16} />
+              </a>
+            )}
+            {instagram && (
+              <a
+                href={instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-pink-600 hover:text-white text-slate-700 transition-all duration-200"
+                aria-label="Instagram"
+                title="Instagram"
+              >
+                <Instagram size={16} />
+              </a>
+            )}
+            {facebook && (
+              <a
+                href={facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 transition-all duration-200"
+                aria-label="Facebook"
+                title="Facebook"
+              >
+                <Facebook size={16} />
+              </a>
+            )}
+            {twitter && (
+              <a
+                href={twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-sky-500 hover:text-white text-slate-700 transition-all duration-200"
+                aria-label="Twitter"
+                title="Twitter"
+              >
+                <Twitter size={16} />
+              </a>
+            )}
+          </div>
+        )}
+
+        {!hasSocialMedia && (
+          <div className="text-xs text-gray-400 italic">
+            Tidak ada kontak sosial media
+          </div>
+        )}
 
         <div
           className={`absolute bottom-0 left-0 right-0 h-1 ${color} transition-all duration-500 ${
