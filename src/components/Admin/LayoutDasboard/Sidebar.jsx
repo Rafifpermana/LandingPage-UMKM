@@ -1,6 +1,7 @@
 import {
   Briefcase,
   FileText,
+  Inbox,
   Layout,
   LayoutDashboard,
   LogOut,
@@ -24,6 +25,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { path: "/admin/blog", icon: FileText, label: "Manajemen Blog" },
     { path: "/admin/tim", icon: Users, label: "Manajemen Tim" },
     { path: "/admin/konten", icon: Layout, label: "Konten Beranda" },
+    { path: "/admin/apply", icon: Inbox, label: "Pelamar Karir" },
   ];
 
   return (

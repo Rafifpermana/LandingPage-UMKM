@@ -1,8 +1,15 @@
-import React from "react";
-import { MapPin, Briefcase } from "lucide-react";
+import { Briefcase, MapPin } from "lucide-react";
 
 export default function JobCard({ job, onViewDetail }) {
   if (!job) return null;
+
+  const getSafeString = (val) => {
+    if (!val) return "";
+    if (typeof val === "object" && "String" in val) {
+      return val.Valid ? val.String : "";
+    }
+    return val;
+  };
 
   const handleDetailClick = () => {
     if (typeof onViewDetail === "function") {
@@ -16,20 +23,22 @@ export default function JobCard({ job, onViewDetail }) {
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl hover:border-blue-300 transition-all duration-300 flex flex-col h-full">
       <div className="flex-grow">
         <span className="text-sm font-semibold text-blue-600">
-          {job.department}
+          {getSafeString(job.department)}
         </span>
         <h3 className="text-xl font-bold text-gray-800 mt-2 line-clamp-2">
-          {job.title}
+          {getSafeString(job.title)}
         </h3>
-        <p className="text-xs text-gray-500 mt-2 line-clamp-2">{job.summary}</p>
+        <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+          {getSafeString(job.summary)}
+        </p>
         <div className="flex flex-col gap-2 text-gray-500 mt-3 text-xs border-t pt-3">
           <div className="flex items-center">
-            {" "}
-            <MapPin size={14} className="mr-1.5" /> {job.location}{" "}
+            <MapPin size={14} className="mr-1.5" />
+            {getSafeString(job.location)}
           </div>
           <div className="flex items-center">
-            {" "}
-            <Briefcase size={14} className="mr-1.5" /> {job.type}{" "}
+            <Briefcase size={14} className="mr-1.5" />
+            {getSafeString(job.job_type) || getSafeString(job.type)}
           </div>
         </div>
       </div>

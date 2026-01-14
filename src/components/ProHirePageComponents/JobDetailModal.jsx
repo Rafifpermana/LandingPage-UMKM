@@ -1,36 +1,79 @@
-import React, { useState } from "react";
 import {
   ArrowLeft,
-  MapPin,
+  Award,
   Briefcase,
   CheckCircle,
-  Award,
+  Loader2,
   Mail,
-  User,
+  MapPin,
   Upload,
+  User,
 } from "lucide-react";
+import { useState } from "react";
+import { careerService } from "../../services/careerService";
 
 export default function JobDetailModal({ job, isOpen, onClose }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cvFile, setCvFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !job) return null;
 
-  const handleApplySubmit = (e) => {
+  const getSafeString = (val) => {
+    if (!val) return "";
+    // Jika bentuknya object {String: "...", Valid: true}
+    if (typeof val === "object" && "String" in val) {
+      return val.Valid ? val.String : "";
+    }
+    return val;
+  };
+
+  const safeList = (list) => (Array.isArray(list) ? list : []);
+
+  const handleApplySubmit = async (e) => {
     e.preventDefault();
-    alert(
-      `Terima kasih, ${name}! Lamaran Anda untuk posisi ${job.title} telah terkirim.`
-    );
-    setName("");
-    setEmail("");
-    setCvFile(null);
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("job_id", job.id);
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("portfolio_link", "");
+
+      if (cvFile) {
+        formData.append("cv", cvFile);
+      }
+
+      await careerService.applyJob(formData);
+
+      alert(
+        `Terima kasih, ${name}! Lamaran Anda untuk posisi ${getSafeString(
+          job.title
+        )} telah terkirim.`
+      );
+
+      setName("");
+      setEmail("");
+      setCvFile(null);
+      onClose();
+    } catch (error) {
+      console.error("Gagal melamar:", error);
+      alert("Gagal mengirim lamaran. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setCvFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Ukuran file maksimal 5MB");
+        return;
+      }
+      setCvFile(file);
     }
   };
 
@@ -54,17 +97,19 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
         <div className="p-6 md:p-8">
           <div className="mb-6 border-b pb-4">
             <span className="text-sm font-semibold text-blue-600 mb-1 inline-block">
-              {job.department}
+              {getSafeString(job.department)}
             </span>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {job.title}
+              {getSafeString(job.title)}
             </h2>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 text-sm">
               <div className="flex items-center">
-                <MapPin size={14} className="mr-1.5" /> {job.location}
+                <MapPin size={14} className="mr-1.5" />{" "}
+                {getSafeString(job.location)}
               </div>
               <div className="flex items-center">
-                <Briefcase size={14} className="mr-1.5" /> {job.type}
+                <Briefcase size={14} className="mr-1.5" />{" "}
+                {getSafeString(job.job_type) || getSafeString(job.type)}
               </div>
             </div>
           </div>
@@ -74,7 +119,7 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
               Tanggung Jawab Utama
             </h4>
             <ul className="space-y-2">
-              {job.responsibilities.map((item, index) => (
+              {safeList(job.responsibilities).map((item, index) => (
                 <li
                   key={index}
                   className="flex items-start text-sm text-gray-700"
@@ -86,6 +131,11 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
                   <span>{item}</span>
                 </li>
               ))}
+              {safeList(job.responsibilities).length === 0 && (
+                <li className="text-sm text-gray-500 italic">
+                  Data belum tersedia
+                </li>
+              )}
             </ul>
           </div>
 
@@ -94,7 +144,7 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
               Kualifikasi
             </h4>
             <ul className="space-y-2">
-              {job.qualifications.map((item, index) => (
+              {safeList(job.requirements).map((item, index) => (
                 <li
                   key={index}
                   className="flex items-start text-sm text-gray-700"
@@ -106,6 +156,11 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
                   <span>{item}</span>
                 </li>
               ))}
+              {safeList(job.requirements).length === 0 && (
+                <li className="text-sm text-gray-500 italic">
+                  Data belum tersedia
+                </li>
+              )}
             </ul>
           </div>
 
@@ -115,7 +170,7 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
             </h4>
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <ul className="space-y-2">
-                {job.benefits.map((item, index) => (
+                {safeList(job.benefits).map((item, index) => (
                   <li
                     key={index}
                     className="flex items-start text-sm text-blue-700"
@@ -127,6 +182,11 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
                     <span>{item}</span>
                   </li>
                 ))}
+                {safeList(job.benefits).length === 0 && (
+                  <li className="text-sm text-blue-700 italic">
+                    Data belum tersedia
+                  </li>
+                )}
               </ul>
             </div>
           </div>
@@ -225,9 +285,16 @@ export default function JobDetailModal({ job, isOpen, onClose }) {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full text-white font-semibold py-3 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
+                  disabled={isSubmitting}
+                  className="w-full text-white font-semibold py-3 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors duration-300 flex justify-center items-center gap-2 disabled:opacity-70"
                 >
-                  Kirim Lamaran
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} /> Mengirim...
+                    </>
+                  ) : (
+                    "Kirim Lamaran"
+                  )}
                 </button>
               </div>
             </form>

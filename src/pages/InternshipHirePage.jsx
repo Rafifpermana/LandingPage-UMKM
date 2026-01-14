@@ -1,46 +1,45 @@
-import React, { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import InternshipHireHero from "../components/InternshipHirePageComponents/InternshipHireHero";
-import WhyInternHere from "../components/InternshipHirePageComponents/WhyInternHere";
 import InternshipJobListing from "../components/InternshipHirePageComponents/InternshipJobListing";
-
-import InternshipDetailModal from "../components/InternshipHirePageComponents/InternshipDetailModal"; // Impor Modal
+import WhyInternHere from "../components/InternshipHirePageComponents/WhyInternHere";
+import { careerService } from "../services/careerService";
 
 export default function InternshipHirePage() {
-  const [selectedInternship, setSelectedInternship] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // State Data
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleViewDetail = (internship) => {
-    if (internship) {
-      setSelectedInternship(internship);
-      setIsModalOpen(true);
-      document.body.style.overflow = "hidden";
-    } else {
-      console.error("Internship data is null.");
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedInternship(null);
-    document.body.style.overflow = "unset";
-  };
-
+  // Fetch Data Internship
   useEffect(() => {
-    return () => {
-      document.body.style.overflow = "unset";
+    const fetchJobs = async () => {
+      try {
+        setIsLoading(true);
+        // Panggil API dengan filter 'internship'
+        const response = await careerService.getJobs("internship");
+        setJobs(response.data || []);
+      } catch (error) {
+        console.error("Gagal memuat data magang:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    fetchJobs();
   }, []);
 
   return (
     <div className="bg-white">
       <InternshipHireHero />
       <WhyInternHere />
-      <InternshipJobListing onViewDetail={handleViewDetail} />
-      <InternshipDetailModal
-        internship={selectedInternship}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+
+      {isLoading ? (
+        <div className="flex justify-center items-center py-24 bg-gray-50">
+          <Loader2 className="animate-spin text-teal-600" size={40} />
+        </div>
+      ) : (
+        <InternshipJobListing jobs={jobs} />
+      )}
     </div>
   );
 }

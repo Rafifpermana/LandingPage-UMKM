@@ -6,6 +6,7 @@ import {
   Clock,
   GraduationCap,
   ListChecks,
+  Loader2,
   MapPin,
   Save,
   School,
@@ -35,35 +36,49 @@ export default function CareerFormModal({
     is_active: true,
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const themeColor = formData.job_category === "prohire" ? "blue" : "teal";
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        ...initialData,
-        responsibilities: initialData.responsibilities
-          ? initialData.responsibilities.join("\n")
-          : "",
-        requirements: initialData.requirements
-          ? initialData.requirements.join("\n")
-          : "",
-        benefits: initialData.benefits ? initialData.benefits.join("\n") : "",
-      });
-    } else {
-      setFormData({
-        job_category: "prohire",
-        title: "",
-        department: "",
-        location: "",
-        summary: "",
-        responsibilities: "",
-        requirements: "",
-        benefits: "",
-        job_type: "",
-        duration: "",
-        internship_type: "",
-        is_active: true,
-      });
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          job_category: initialData.job_category || "prohire",
+          title: initialData.title || "",
+          department: initialData.department || "",
+          location: initialData.location || "",
+          summary: initialData.summary || "",
+          responsibilities: initialData.responsibilities
+            ? initialData.responsibilities.join("\n")
+            : "",
+          requirements: initialData.requirements
+            ? initialData.requirements.join("\n")
+            : "",
+          benefits: initialData.benefits ? initialData.benefits.join("\n") : "",
+          job_type: initialData.job_type?.String || "",
+          duration: initialData.duration?.String || "",
+          internship_type: initialData.internship_type?.String || "",
+          is_active: initialData.is_active ?? true,
+        });
+      } else {
+        setFormData({
+          job_category: "prohire",
+          title: "",
+          department: "",
+          location: "",
+          summary: "",
+          responsibilities: "",
+          requirements: "",
+          benefits: "",
+          job_type: "",
+          duration: "",
+          internship_type: "",
+          is_active: true,
+        });
+      }
+      setError("");
     }
   }, [initialData, isOpen]);
 
@@ -79,19 +94,45 @@ export default function CareerFormModal({
     setFormData((prev) => ({ ...prev, job_category: category }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      ...formData,
-      responsibilities: formData.responsibilities
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const filteredResp = formData.responsibilities
         .split("\n")
-        .filter((i) => i.trim() !== ""),
-      requirements: formData.requirements
+        .filter((i) => i.trim() !== "");
+      const filteredReq = formData.requirements
         .split("\n")
-        .filter((i) => i.trim() !== ""),
-      benefits: formData.benefits.split("\n").filter((i) => i.trim() !== ""),
-    };
-    onSubmit(payload);
+        .filter((i) => i.trim() !== "");
+      const filteredBen = formData.benefits
+        .split("\n")
+        .filter((i) => i.trim() !== "");
+
+      if (filteredResp.length === 0) {
+        throw new Error("Minimal 1 tanggung jawab harus diisi");
+      }
+      if (filteredReq.length === 0) {
+        throw new Error("Minimal 1 persyaratan harus diisi");
+      }
+      if (filteredBen.length === 0) {
+        throw new Error("Minimal 1 benefit harus diisi");
+      }
+
+      const payload = {
+        ...formData,
+        responsibilities: filteredResp,
+        requirements: filteredReq,
+        benefits: filteredBen,
+      };
+
+      await onSubmit(payload);
+    } catch (err) {
+      setError(err.message || "Gagal menyimpan data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -129,6 +170,13 @@ export default function CareerFormModal({
           onSubmit={handleSubmit}
           className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8"
         >
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Section: Kategori */}
           <div>
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
@@ -263,6 +311,7 @@ export default function CareerFormModal({
                     name="department"
                     value={formData.department}
                     onChange={handleChange}
+                    required
                     className={`w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent outline-none transition-all appearance-none bg-white ${
                       themeColor === "blue"
                         ? "focus:ring-blue-500"
@@ -293,6 +342,7 @@ export default function CareerFormModal({
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
+                    required
                     className={`w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent outline-none transition-all appearance-none bg-white ${
                       themeColor === "blue"
                         ? "focus:ring-blue-500"
@@ -390,6 +440,7 @@ export default function CareerFormModal({
                 <textarea
                   name="summary"
                   rows="2"
+                  required
                   value={formData.summary}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent outline-none transition-all ${
@@ -420,6 +471,7 @@ export default function CareerFormModal({
                 <textarea
                   name="responsibilities"
                   rows="4"
+                  required
                   value={formData.responsibilities}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent outline-none transition-all font-mono text-sm bg-gray-50 ${
@@ -427,7 +479,7 @@ export default function CareerFormModal({
                       ? "focus:ring-blue-500"
                       : "focus:ring-teal-500"
                   }`}
-                  placeholder="- Mengembangkan fitur baru...&#10;- Melakukan code review..."
+                  placeholder="Mengembangkan fitur baru&#10;Melakukan code review&#10;Dokumentasi API"
                 />
                 <p className="text-xs text-gray-400 mt-1 text-right">
                   Gunakan baris baru (Enter) untuk memisahkan poin.
@@ -447,6 +499,7 @@ export default function CareerFormModal({
                 <textarea
                   name="requirements"
                   rows="4"
+                  required
                   value={formData.requirements}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent outline-none transition-all font-mono text-sm bg-gray-50 ${
@@ -454,7 +507,7 @@ export default function CareerFormModal({
                       ? "focus:ring-blue-500"
                       : "focus:ring-teal-500"
                   }`}
-                  placeholder="- Minimal S1 Teknik Informatika...&#10;- Pengalaman menggunakan React..."
+                  placeholder="Minimal S1 Teknik Informatika&#10;Pengalaman menggunakan React&#10;Mampu bekerja dalam tim"
                 />
               </div>
 
@@ -468,6 +521,7 @@ export default function CareerFormModal({
                 <textarea
                   name="benefits"
                   rows="3"
+                  required
                   value={formData.benefits}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:border-transparent outline-none transition-all font-mono text-sm bg-gray-50 ${
@@ -475,7 +529,7 @@ export default function CareerFormModal({
                       ? "focus:ring-blue-500"
                       : "focus:ring-teal-500"
                   }`}
-                  placeholder="- Gaji Kompetitif...&#10;- Asuransi Kesehatan..."
+                  placeholder="Gaji Kompetitif&#10;Asuransi Kesehatan&#10;Work from Home"
                 />
               </div>
             </div>
@@ -523,21 +577,32 @@ export default function CareerFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+            disabled={isLoading}
+            className="px-6 py-2.5 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Batal
           </button>
           <button
-            type="button"
+            type="submit"
             onClick={handleSubmit}
-            className={`px-6 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 shadow-lg transition-all transform active:scale-95 ${
+            disabled={isLoading}
+            className={`px-6 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 shadow-lg transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
               themeColor === "blue"
                 ? "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
                 : "bg-teal-600 hover:bg-teal-700 shadow-teal-200"
             }`}
           >
-            <Save size={18} />
-            {initialData ? "Simpan Perubahan" : "Publikasikan Lowongan"}
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                Menyimpan...
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                {initialData ? "Simpan Perubahan" : "Publikasikan Lowongan"}
+              </>
+            )}
           </button>
         </div>
       </div>

@@ -1,34 +1,39 @@
-import React, { useState, useEffect } from "react";
-import ProHireHero from "../components/ProHirePageComponents/ProHireHero";
-import WhyJoinUs from "../components/ProHirePageComponents/WhyJoinUs";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import JobListing from "../components/ProHirePageComponents/JobListing";
-import SpontaneousCta from "../components/ProHirePageComponents/SpontaneousCta";
-import JobDetailModal from "../components/ProHirePageComponents/JobDetailModal";
+import ProHireHero from "../components/ProHirePageComponents/ProHireHero";
 import SpontaneousApplicationModal from "../components/ProHirePageComponents/SpontaneousApplicationModal";
+import SpontaneousCta from "../components/ProHirePageComponents/SpontaneousCta";
+import WhyJoinUs from "../components/ProHirePageComponents/WhyJoinUs";
+import { careerService } from "../services/careerService";
 
 export default function ProHirePage() {
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  // 1. State Data
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 2. State Spontaneous Modal
   const [isSpontaneousModalOpen, setIsSpontaneousModalOpen] = useState(false);
 
-  const handleViewDetail = (job) => {
-    if (job) {
-      setSelectedJob(job);
-      setIsJobModalOpen(true);
-      document.body.style.overflow = "hidden";
-    } else {
-      console.error("Job data is null.");
-    }
-  };
+  // 3. Fetch Data Backend (Prohire)
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setIsLoading(true);
+        // Panggil API dengan kategori 'prohire'
+        const response = await careerService.getJobs("prohire");
+        setJobs(response.data || []);
+      } catch (error) {
+        console.error("Gagal memuat data lowongan:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleCloseJobModal = () => {
-    setIsJobModalOpen(false);
-    setSelectedJob(null);
-    if (!isSpontaneousModalOpen) {
-      document.body.style.overflow = "unset";
-    }
-  };
+    fetchJobs();
+  }, []);
 
+  // Handlers Spontaneous Modal
   const handleOpenSpontaneousModal = () => {
     setIsSpontaneousModalOpen(true);
     document.body.style.overflow = "hidden";
@@ -36,11 +41,10 @@ export default function ProHirePage() {
 
   const handleCloseSpontaneousModal = () => {
     setIsSpontaneousModalOpen(false);
-    if (!isJobModalOpen) {
-      document.body.style.overflow = "unset";
-    }
+    document.body.style.overflow = "unset";
   };
 
+  // Cleanup overflow
   useEffect(() => {
     return () => {
       document.body.style.overflow = "unset";
@@ -51,13 +55,18 @@ export default function ProHirePage() {
     <div className="bg-white">
       <ProHireHero />
       <WhyJoinUs />
-      <JobListing onViewDetail={handleViewDetail} />
+
+      {/* 4. Tampilkan Loading atau JobListing */}
+      {isLoading ? (
+        <div className="flex justify-center items-center py-24 bg-gray-50">
+          <Loader2 className="animate-spin text-blue-600" size={40} />
+        </div>
+      ) : (
+        <JobListing jobs={jobs} />
+      )}
+
       <SpontaneousCta onOpenModal={handleOpenSpontaneousModal} />
-      <JobDetailModal
-        job={selectedJob}
-        isOpen={isJobModalOpen}
-        onClose={handleCloseJobModal}
-      />
+
       <SpontaneousApplicationModal
         isOpen={isSpontaneousModalOpen}
         onClose={handleCloseSpontaneousModal}

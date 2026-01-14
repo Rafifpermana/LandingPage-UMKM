@@ -1,83 +1,91 @@
-import { Filter, Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { Filter, Loader2, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import CareerFormModal from "../../components/Admin/LayoutDasboard/Career/CareerFormModal";
 import CareerTable from "../../components/Admin/LayoutDasboard/Career/CareerTable";
-
-// --- DATA DUMMY AWAL ---
-const initialJobs = [
-  {
-    id: 1,
-    job_category: "prohire",
-    title: "Senior Go Developer",
-    department: "Teknologi",
-    location: "Remote",
-    summary: "Membangun API berkinerja tinggi untuk UMKM.",
-    job_type: "Full-time",
-    responsibilities: ["Coding Golang", "Code Review"],
-    requirements: ["5+ tahun pengalaman", "Paham Microservices"],
-    benefits: ["Gaji Kompetitif", "WFH"],
-    is_active: true,
-  },
-  {
-    id: 2,
-    job_category: "internship",
-    title: "Social Media Intern",
-    department: "Marketing",
-    location: "Hybrid (Jakarta)",
-    summary: "Belajar mengelola konten media sosial.",
-    internship_type: "Magang Mandiri",
-    duration: "3 Bulan",
-    responsibilities: ["Membuat konten Reels", "Analisis engagement"],
-    requirements: ["Mahasiswa aktif", "Kreatif"],
-    benefits: ["Uang saku", "Sertifikat"],
-    is_active: true,
-  },
-];
+import { careerService } from "../../services/careerService";
 
 export default function CareerManagementPage() {
-  const [jobs, setJobs] = useState(initialJobs);
+  const [jobs, setJobs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("prohire");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Logic: Filter
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await careerService.getJobs(filterCategory);
+      if (response.status === "success") {
+        setJobs(response.data || []);
+      }
+    } catch (err) {
+      setError(err.message || "Gagal memuat data lowongan");
+      setJobs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, [filterCategory]);
+
   const filteredJobs = jobs.filter((job) => {
     const matchSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.department.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCategory =
-      filterCategory === "all" || job.job_category === filterCategory;
-    return matchSearch && matchCategory;
+
+    const matchStatus =
+      filterStatus === "all" ||
+      (filterStatus === "active" && job.is_active) ||
+      (filterStatus === "inactive" && !job.is_active);
+
+    return matchSearch && matchStatus;
   });
 
-  // Logic: Create
-  const handleCreate = (newJobData) => {
-    const newJob = {
-      ...newJobData,
-      id: Date.now(),
-    };
-    setJobs([newJob, ...jobs]);
-    setIsModalOpen(false);
-    alert("Lowongan berhasil dibuat!");
+  const handleCreate = async (newJobData) => {
+    try {
+      const response = await careerService.createJob(newJobData);
+      if (response.status === "success") {
+        await fetchJobs();
+        setIsModalOpen(false);
+        alert("Lowongan berhasil dibuat!");
+      }
+    } catch (err) {
+      alert(err.message || "Gagal membuat lowongan");
+    }
   };
 
-  // Logic: Update
-  const handleUpdate = (updatedData) => {
-    setJobs(
-      jobs.map((job) =>
-        job.id === editingJob.id ? { ...job, ...updatedData } : job
-      )
-    );
-    setIsModalOpen(false);
-    setEditingJob(null);
-    alert("Lowongan berhasil diperbarui!");
+  const handleUpdate = async (updatedData) => {
+    try {
+      const response = await careerService.updateJob(
+        editingJob.id,
+        updatedData
+      );
+      if (response.status === "success") {
+        await fetchJobs();
+        setIsModalOpen(false);
+        setEditingJob(null);
+        alert("Lowongan berhasil diperbarui!");
+      }
+    } catch (err) {
+      alert(err.message || "Gagal memperbarui lowongan");
+    }
   };
 
-  // Logic: Delete
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus lowongan ini?")) {
-      setJobs(jobs.filter((job) => job.id !== id));
+      try {
+        await careerService.deleteJob(id);
+        await fetchJobs();
+        alert("Lowongan berhasil dihapus!");
+      } catch (err) {
+        alert(err.message || "Gagal menghapus lowongan");
+      }
     }
   };
 
@@ -121,29 +129,53 @@ export default function CareerManagementPage() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+            className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 font-medium"
           >
-            <option value="all">Semua Kategori</option>
             <option value="prohire">ProHire</option>
             <option value="internship">Internship</option>
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+          >
+            <option value="all">Semua Status</option>
+            <option value="active">Aktif</option>
+            <option value="inactive">Nonaktif</option>
           </select>
         </div>
       </div>
 
-      {/* Table */}
-      <CareerTable
-        jobs={filteredJobs}
-        onEdit={(job) => {
-          setEditingJob(job);
-          setIsModalOpen(true);
-        }}
-        onDelete={handleDelete}
-      />
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="animate-spin text-blue-600" size={40} />
+        </div>
+      ) : (
+        <CareerTable
+          jobs={filteredJobs}
+          onEdit={(job) => {
+            setEditingJob(job);
+            setIsModalOpen(true);
+          }}
+          onDelete={handleDelete}
+        />
+      )}
 
       {/* Modal */}
       <CareerFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingJob(null);
+        }}
         onSubmit={editingJob ? handleUpdate : handleCreate}
         initialData={editingJob}
       />

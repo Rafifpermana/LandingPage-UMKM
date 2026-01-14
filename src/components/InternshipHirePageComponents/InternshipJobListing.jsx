@@ -1,86 +1,30 @@
-import React, { useState, useMemo, useEffect } from "react";
-import InternshipJobCard from "./InternshipJobCard";
-import Pagination from "../BlogPageComponents/Pagination";
 import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Pagination from "../BlogPageComponents/Pagination";
+import InternshipDetailModal from "./InternshipDetailModal";
+import InternshipJobCard from "./InternshipJobCard";
 
-const generateInternships = (count) => {
-  const titles = [
-    "Social Media Intern",
-    "Graphic Design Intern",
-    "Program Assistant",
-    "Data Analyst",
-    "Content Writer",
-    "Partnership Intern",
-    "Web Dev Intern",
-  ];
-  const departments = [
-    "Marketing",
-    "Kreatif",
-    "Program",
-    "Teknologi",
-    "Operasional",
-  ];
-  const locations = [
-    "Remote",
-    "Hybrid (Jakarta)",
-    "WFO (Jakarta)",
-    "WFO (Yogyakarta)",
-  ];
-  const types = ["Magang Kampus Merdeka", "Magang Mandiri", "Magang WFH"];
-  const durations = ["3 Bulan", "4 Bulan", "5 Bulan", "6 Bulan"];
+const INTERNSHIPS_PER_PAGE = 6;
 
-  const internships = [];
-  for (let i = 1; i <= count; i++) {
-    const title = titles[Math.floor(Math.random() * titles.length)];
-    const department =
-      departments[Math.floor(Math.random() * departments.length)];
-    internships.push({
-      id: `INT-${i}`,
-      title: `${title} #${i}`,
-      department: department,
-      location: locations[Math.floor(Math.random() * locations.length)],
-      duration: durations[Math.floor(Math.random() * durations.length)],
-      type: types[Math.floor(Math.random() * types.length)],
-      summary: `Kesempatan magang sebagai ${title} #${i} di departemen ${department}. Belajar dan berkontribusi langsung!`,
-      responsibilities: [
-        `Membantu tugas harian tim ${department}.`,
-        `Melakukan riset terkait proyek #${i}.`,
-        "Berkontribusi dalam brainstorming ide.",
-        "Menyiapkan laporan sederhana.",
-      ],
-      requirements: [
-        `Mahasiswa aktif D3/S1 atau fresh graduate (maks 1 tahun).`,
-        `Memiliki minat kuat di bidang ${department}.`,
-        "Mampu berkomunikasi dengan baik.",
-        `Familiar dengan tools dasar (MS Office, Google Suite, dll).`,
-        "Proaktif dan mau belajar hal baru.",
-      ],
-      benefits: [
-        "Sertifikat Magang Resmi",
-        "Uang Saku/Transport (tergantung kebijakan)",
-        "Bimbingan Mentor Profesional",
-        "Pengalaman Kerja Nyata",
-        "Lingkungan Kerja Kolaboratif",
-      ],
-    });
-  }
-  return internships;
-};
-
-const allInternships = generateInternships(150);
-const departmentsFilter = [
-  "Semua Departemen",
-  ...new Set(allInternships.map((j) => j.department)),
-];
-const INTERNSHIPS_PER_PAGE = 5;
-
-export default function InternshipJobListing({ onViewDetail }) {
+export default function InternshipJobListing({ jobs = [] }) {
   const [selectedDept, setSelectedDept] = useState("Semua Departemen");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // State untuk Modal
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 1. Ambil list departemen dari data Jobs yang masuk
+  const departmentsFilter = useMemo(() => {
+    const depts = jobs.map((j) => j.department);
+    return ["Semua Departemen", ...new Set(depts)];
+  }, [jobs]);
+
+  // 2. Filter Logic
   const filteredJobs = useMemo(() => {
-    return allInternships
+    if (!jobs) return [];
+    return jobs
       .filter(
         (job) =>
           selectedDept === "Semua Departemen" || job.department === selectedDept
@@ -88,12 +32,14 @@ export default function InternshipJobListing({ onViewDetail }) {
       .filter((job) =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
-  }, [selectedDept, searchTerm]);
+  }, [jobs, selectedDept, searchTerm]);
 
+  // 3. Pagination Logic
   const totalPages = useMemo(
     () => Math.ceil(filteredJobs.length / INTERNSHIPS_PER_PAGE),
     [filteredJobs]
   );
+
   const currentJobs = useMemo(() => {
     const indexOfLast = currentPage * INTERNSHIPS_PER_PAGE;
     const indexOfFirst = indexOfLast - INTERNSHIPS_PER_PAGE;
@@ -115,6 +61,12 @@ export default function InternshipJobListing({ onViewDetail }) {
     setCurrentPage(1);
   }, [selectedDept, searchTerm]);
 
+  // Handler Buka Modal
+  const handleViewDetail = (job) => {
+    setSelectedJob(job);
+    setIsModalOpen(true);
+  };
+
   return (
     <section
       id="internship-listing-section"
@@ -124,6 +76,8 @@ export default function InternshipJobListing({ onViewDetail }) {
         <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 text-center mb-12">
           Lowongan Magang Terbuka
         </h2>
+
+        {/* Filter & Search Bar */}
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 mb-12">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-grow w-full md:w-auto">
@@ -173,6 +127,7 @@ export default function InternshipJobListing({ onViewDetail }) {
           </div>
         </div>
 
+        {/* Job Grid */}
         {currentJobs.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -180,7 +135,7 @@ export default function InternshipJobListing({ onViewDetail }) {
                 <InternshipJobCard
                   key={job.id}
                   job={job}
-                  onViewDetail={onViewDetail}
+                  onViewDetail={handleViewDetail}
                 />
               ))}
             </div>
@@ -199,12 +154,18 @@ export default function InternshipJobListing({ onViewDetail }) {
               Lowongan Tidak Ditemukan
             </h3>
             <p className="text-gray-500 mt-2">
-              Belum ada lowongan untuk departemen ini. Silakan cek kembali
-              nanti.
+              Belum ada lowongan untuk kriteria ini. Silakan cek kembali nanti.
             </p>
           </div>
         )}
       </div>
+
+      {/* Render Modal */}
+      <InternshipDetailModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        internship={selectedJob}
+      />
     </section>
   );
 }

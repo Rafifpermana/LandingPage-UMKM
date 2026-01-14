@@ -39,6 +39,7 @@ const CarerManagementPage = lazy(() =>
 const TeamManagementPage = lazy(() =>
   import("./pages/admin/TeamManagementPage")
 );
+const CareerApplyPage = lazy(() => import("./pages/admin/CareerApplyPage"));
 
 //loding animations
 import AdminLoading from "./components/Loaders/AdminLoading";
@@ -87,6 +88,7 @@ export default function App() {
                 <Route path="karir" element={<CarerManagementPage />} />
                 <Route path="blog" element={<BlogManagementPage />} />
                 <Route path="tim" element={<TeamManagementPage />} />
+                <Route path="apply" element={<CareerApplyPage />} />
                 <Route
                   path="konten"
                   element={

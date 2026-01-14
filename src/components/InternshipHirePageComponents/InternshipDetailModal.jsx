@@ -1,54 +1,86 @@
-import React, { useState } from "react";
 import {
   ArrowLeft,
-  MapPin,
-  Clock,
-  School,
-  CheckCircle,
   Award,
-  Mail,
-  User,
-  Upload,
+  CheckCircle,
+  Clock,
   Link as LinkIcon,
-  Briefcase,
+  Loader2, // Icon Loading
+  Mail,
+  MapPin,
+  School,
+  Upload,
+  User,
 } from "lucide-react";
+import { useState } from "react";
+import { careerService } from "../../services/careerService";
 
 export default function InternshipDetailModal({ internship, isOpen, onClose }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [motivationFile, setMotivationFile] = useState(null);
   const [portfolioLink, setPortfolioLink] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !internship) return null;
 
-  const handleApplySubmit = (e) => {
+  const getSafeString = (val) => {
+    if (!val) return "";
+    // Jika bentuknya object {String: "...", Valid: true}
+    if (typeof val === "object" && "String" in val) {
+      return val.Valid ? val.String : "";
+    }
+    return val;
+  };
+
+  const safeList = (list) => (Array.isArray(list) ? list : []);
+
+  const handleApplySubmit = async (e) => {
     e.preventDefault();
-    console.log("Internship Application:", {
-      internshipId: internship.id,
-      name,
-      email,
-      motivation: motivationFile?.name,
-      portfolioLink,
-    });
-    alert(
-      `Terima kasih, ${name}! Lamaran magang Anda untuk ${internship.title} telah terkirim.`
-    );
-    setName("");
-    setEmail("");
-    setMotivationFile(null);
-    setPortfolioLink("");
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("job_id", internship.id);
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("portfolio_link", portfolioLink);
+
+      if (motivationFile) {
+        formData.append("cv", motivationFile);
+      }
+
+      await careerService.applyJob(formData);
+
+      alert(
+        `Terima kasih, ${name}! Lamaran magang Anda untuk ${getSafeString(
+          internship.title
+        )} telah terkirim.`
+      );
+
+      // Reset Form
+      setName("");
+      setEmail("");
+      setMotivationFile(null);
+      setPortfolioLink("");
+      onClose();
+    } catch (error) {
+      console.error("Gagal melamar:", error);
+      alert("Gagal mengirim lamaran. Pastikan file PDF tidak lebih dari 5MB.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setMotivationFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Ukuran file maksimal 5MB");
+        return;
+      }
+      setMotivationFile(file);
     }
   };
-
-  const responsibilities = internship.responsibilities || [];
-  const requirements = internship.requirements || [];
-  const benefits = internship.benefits || [];
 
   return (
     <div
@@ -70,101 +102,106 @@ export default function InternshipDetailModal({ internship, isOpen, onClose }) {
         <div className="p-6 md:p-8">
           <div className="mb-6 border-b pb-4">
             <span className="text-sm font-semibold text-cyan-600 mb-1 inline-block">
-              {internship.department || "N/A"}
+              {getSafeString(internship.department)}
             </span>
 
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {internship.title || "Judul Lowongan"}
+              {getSafeString(internship.title)}
             </h2>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-600 text-sm">
               <div className="flex items-center">
                 <MapPin size={14} className="mr-1.5" />
-                {internship.location || "N/A"}
+                {getSafeString(internship.location)}
               </div>
               <div className="flex items-center">
                 <Clock size={14} className="mr-1.5" />
-                {internship.duration || "N/A"}
+                {getSafeString(internship.duration)}
               </div>
               <div className="flex items-center">
                 <School size={14} className="mr-1.5" />
-                {internship.type || "N/A"}
+                {getSafeString(internship.internship_type) ||
+                  getSafeString(internship.type)}
               </div>
             </div>
           </div>
+
           <div className="mb-6">
             <h4 className="text-lg font-semibold text-gray-800 mb-3">
               Apa yang Akan Kamu Lakukan?
             </h4>
-            {responsibilities.length > 0 ? (
-              <ul className="space-y-2">
-                {responsibilities.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start text-sm text-gray-700"
-                  >
-                    <CheckCircle
-                      size={16}
-                      className="mr-2 mt-0.5 text-cyan-500 flex-shrink-0"
-                    />{" "}
-                    {/* Warna Cyan */}
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500">Informasi belum tersedia.</p>
-            )}
+            <ul className="space-y-2">
+              {safeList(internship.responsibilities).map((item, index) => (
+                <li
+                  key={index}
+                  className="flex items-start text-sm text-gray-700"
+                >
+                  <CheckCircle
+                    size={16}
+                    className="mr-2 mt-0.5 text-cyan-500 flex-shrink-0"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+              {safeList(internship.responsibilities).length === 0 && (
+                <li className="text-sm text-gray-500 italic">
+                  Data belum tersedia
+                </li>
+              )}
+            </ul>
           </div>
+
           <div className="mb-6">
             <h4 className="text-lg font-semibold text-gray-800 mb-3">
               Kualifikasi yang Dicari
             </h4>
-            {requirements.length > 0 ? (
-              <ul className="space-y-2">
-                {requirements.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start text-sm text-gray-700"
-                  >
-                    <CheckCircle
-                      size={16}
-                      className="mr-2 mt-0.5 text-cyan-500 flex-shrink-0"
-                    />{" "}
-                    {/* Warna Cyan */}
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500">Informasi belum tersedia.</p>
-            )}
+            <ul className="space-y-2">
+              {safeList(internship.requirements).map((item, index) => (
+                <li
+                  key={index}
+                  className="flex items-start text-sm text-gray-700"
+                >
+                  <CheckCircle
+                    size={16}
+                    className="mr-2 mt-0.5 text-cyan-500 flex-shrink-0"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+              {safeList(internship.requirements).length === 0 && (
+                <li className="text-sm text-gray-500 italic">
+                  Data belum tersedia
+                </li>
+              )}
+            </ul>
           </div>
+
           <div className="mb-8">
             <h4 className="text-lg font-semibold text-gray-800 mb-3">
               Benefit Magang
             </h4>
-            {benefits.length > 0 ? (
-              <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-100">
-                <ul className="space-y-2">
-                  {benefits.map((item, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start text-sm text-cyan-700"
-                    >
-                      <Award
-                        size={16}
-                        className="mr-2 mt-0.5 text-cyan-500 flex-shrink-0"
-                      />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">Informasi belum tersedia.</p>
-            )}
+            <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-100">
+              <ul className="space-y-2">
+                {safeList(internship.benefits).map((item, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start text-sm text-cyan-700"
+                  >
+                    <Award
+                      size={16}
+                      className="mr-2 mt-0.5 text-cyan-500 flex-shrink-0"
+                    />
+                    <span>{item}</span>
+                  </li>
+                ))}
+                {safeList(internship.benefits).length === 0 && (
+                  <li className="text-sm text-cyan-700 italic">
+                    Data belum tersedia
+                  </li>
+                )}
+              </ul>
+            </div>
           </div>
-          \
+
           <div className="mt-auto pt-6 border-t">
             <h3 className="text-xl font-semibold text-gray-800 text-center mb-5">
               Lamar Posisi Magang Ini
@@ -196,7 +233,7 @@ export default function InternshipDetailModal({ internship, isOpen, onClose }) {
                   />
                 </div>
               </div>
-              \
+
               <div>
                 <label
                   htmlFor={`internEmail-${internship.id}`}
@@ -220,6 +257,7 @@ export default function InternshipDetailModal({ internship, isOpen, onClose }) {
                   />
                 </div>
               </div>
+
               <div>
                 <label
                   htmlFor={`internPortfolio-${internship.id}`}
@@ -242,6 +280,7 @@ export default function InternshipDetailModal({ internship, isOpen, onClose }) {
                   />
                 </div>
               </div>
+
               <div>
                 <label
                   htmlFor={`internCvUpload-${internship.id}`}
@@ -271,17 +310,26 @@ export default function InternshipDetailModal({ internship, isOpen, onClose }) {
                       <p className="pl-1">atau drag and drop</p>
                     </div>
                     <p className="text-xs text-gray-500">
-                      {motivationFile ? motivationFile.name : "PDF hingga 2MB"}
+                      {motivationFile ? motivationFile.name : "PDF hingga 5MB"}
                     </p>
                   </div>
                 </div>
               </div>
+
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full text-white font-semibold py-3 px-6 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors duration-300"
+                  disabled={isSubmitting}
+                  className="w-full text-white font-semibold py-3 px-6 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors duration-300 flex justify-center items-center gap-2 disabled:opacity-70"
                 >
-                  Kirim Lamaran Magang
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Mengirim...
+                    </>
+                  ) : (
+                    "Kirim Lamaran Magang"
+                  )}
                 </button>
               </div>
             </form>
