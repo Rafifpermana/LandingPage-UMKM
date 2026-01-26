@@ -14,10 +14,16 @@ export const getHeaders = () => {
   };
 };
 
+//
+
 export const getFileUrl = (filePath) => {
   if (!filePath) return null;
-  // Hapus "./" jika ada
+
+  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+    return filePath; // Kembalikan langsung URL-nya
+  }
+
   let cleanPath = filePath.startsWith("./") ? filePath.substring(2) : filePath;
-  // Return full URL
-  return `${API_FILE_URL}/${cleanPath}`;
+
+  return `${API_IMAGE_URL}/${cleanPath}`;
 };
